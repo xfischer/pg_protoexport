@@ -1,5 +1,26 @@
 <Project>
+  <PropertyGroup>
+    <Authors>Xavier Fischer</Authors>
+    <Company>Xavier Fischer</Company>
+    <Product>pg_protoexport</Product>
+    <Copyright>Copyright (c) Xavier Fischer</Copyright>
+    <PackageProjectUrl>https://github.com/xfischer/pg_protoexport</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xfischer/pg_protoexport.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>postgresql;postgres;wire-protocol;pcap;pcapng;packet-capture;diagnostics</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 </Project>

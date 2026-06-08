@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <StartupObject>pg_protoexport.Program</StartupObject>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>pg_protoexport</ToolCommandName>
+    <PackageId>pg_protoexport</PackageId>
+    <Description>CLI that turns PostgreSQL wire-protocol network captures (.pcap/.pcapng) into LaTeX, Mermaid, PlantUML, ASCII, PQTrace and guided-HTML documentation; can also record live captures.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
