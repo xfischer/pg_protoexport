@@ -1,0 +1,17 @@
+Packet (F)
+2026-05-21T07:41:41.4568060Z	F	77	Parse	statement=_p2, query=UPDATE actor SET last_update = last_update WHERE actor_id = $1, parameter oids=[23]
+2026-05-21T07:41:41.4568060Z	F	9	Describe	Statement: '_p2'
+2026-05-21T07:41:41.4568060Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:41.4584980Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:41.4584980Z	B	10	ParameterDescription	oids: [23]
+2026-05-21T07:41:41.4584980Z	B	4	NoData	NoDataMessage
+2026-05-21T07:41:41.4584980Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:41.4602530Z	F	27	Bind	_p2: formats: [1], values len: [4], results format: [1]
+2026-05-21T07:41:41.4602530Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:41.4602530Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:41.4662490Z	B	4	BindComplete	
+2026-05-21T07:41:41.4662490Z	B	13	CommandComplete	UPDATE 1
+2026-05-21T07:41:41.4662490Z	B	5	ReadyForQuery	Idle

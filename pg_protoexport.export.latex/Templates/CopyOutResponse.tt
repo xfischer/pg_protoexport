@@ -1,0 +1,38 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5;
+    string fmtLabel = this.OverallFormat == 1 ? "binary" : "text";
+#>
+\begin{leftwordgroup}{CopyOutResponse}
+        \bitbox{1}[bgcolor=lightcyan]{H} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox("fmt: " + fmtLabel, 1, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox("cols: " + this.ColumnCount, 2, rowWidth, ref usedBytes) #><#
+    int colIdx = 0;
+    foreach (var col in this.ColumnFormats)
+    {
+        colIdx++;
+    #><#= LatexHelper.EmitFixedBitbox("col" + colIdx + ": " + (col == 1 ? "bin" : "txt"), 2, rowWidth, ref usedBytes) #><#
+    }
+    #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<# } else {
+    string fmtLabel = this.OverallFormat == 1 ? "binary" : "text";
+#>
+
+\begin{leftwordgroup}{CopyOutResponse}
+        \bitbox{1}[bgcolor=lightcyan]{H} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{2}{\tiny fmt: <#= fmtLabel #>} &
+        \bitbox{2}{\tiny cols: <#= this.ColumnCount #>} &
+        \bitbox{23}[bgcolor=lightgray]{\tiny <#= string.Join(", ", this.ColumnFormats.Select(c => c == 1 ? "bin" : "txt")) #>}
+    \end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1f;
+#>

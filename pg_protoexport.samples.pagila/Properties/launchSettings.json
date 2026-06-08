@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "pagila-generate": {
+      "commandName": "Project",
+      "commandLineArgs": "generate"
+    },
+    "pagila-capture-and-generate": {
+      "commandName": "Project",
+      "commandLineArgs": "capture-and-generate"
+    }
+  }
+}

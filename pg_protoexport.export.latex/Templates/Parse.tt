@@ -1,0 +1,61 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5; // 1 byte code + 4 bytes length header
+#>
+    \begin{leftwordgroup}{Parse}
+        \bitbox{1}[bgcolor=lightcyan]{P} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitWrappingCString("statement: ", this.Message.Statement, rowWidth, ref usedBytes) #><#= LatexHelper.EmitWrappingCString("query: ", this.Message.Query, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox("paramCount: " + this.ParameterOids.Count, 2, rowWidth, ref usedBytes) #><#
+    foreach (int oid in this.ParameterOids)
+    {
+    #><#= LatexHelper.EmitFixedBitbox("oid: " + oid, 4, rowWidth, ref usedBytes) #><#
+    }
+    #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<# } else { #>
+
+    \begin{leftwordgroup}{Parse}
+        \bitbox{1}[bgcolor=lightcyan]{P} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        <# if (this.Statement.Length == 0) { #>
+        \bitbox{6}{\small Statement: (null)} &
+        \bitbox{19}{\small Query: <#= LatexHelper.TrimUnescape(this.Query, 50) #>} &
+        <# } else { #>
+        \bitbox{12}{\small Statement: <#= this.Statement #>} &
+        \bitbox{13}{\small Query: <#= LatexHelper.TrimUnescape(this.Query, 50) #>} &
+        <# }#>
+
+        \bitbox{2}{\tiny param Count: <#= this.ParameterOids.Count #>}
+
+<#
+    if (this.ParameterOids.Count > 0)
+    {
+#>
+    \\
+    \begin{rightwordgroup}{parameter types}
+    <#
+       int paramIndex = 0;
+       foreach (var param in this.ParameterOids)
+       {
+        paramIndex++;
+    #>
+        \bitbox{4}{oid: <#= param #>} &
+    <#
+       }
+    #>
+    \bitbox{<#= 32 - paramIndex * 4 #>}[bgcolor=lightgray]{}
+    \end{rightwordgroup}
+<#
+    }
+#>
+    \end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1 + this.ParameterOids.Count;
+#>

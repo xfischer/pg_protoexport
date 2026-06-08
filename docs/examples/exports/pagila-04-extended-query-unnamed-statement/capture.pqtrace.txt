@@ -1,0 +1,13 @@
+Packet (F)
+2026-05-21T07:41:40.3473480Z	F	67	Parse	statement=, query=SELECT title, release_year FROM film WHERE film_id = $1, parameter oids=[23]
+2026-05-21T07:41:40.3473480Z	F	24	Bind	: formats: [1], values len: [4], results format: [1]
+2026-05-21T07:41:40.3473480Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:40.3473480Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:40.3473480Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:40.3488720Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:40.3488720Z	B	4	BindComplete	
+2026-05-21T07:41:40.3488720Z	B	61	RowDescription	[title: 1469070, 2, 1043, -1, 259, 1, release_year: 1469070, 4, 23, 4, -1, 1]
+2026-05-21T07:41:40.3488720Z	B	36	DataRow	[title:41525449535420434f4c44424c4f4f444544, release_year:000007d6]
+2026-05-21T07:41:40.3488720Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:40.3488720Z	B	5	ReadyForQuery	Idle

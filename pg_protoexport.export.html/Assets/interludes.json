@@ -1,0 +1,22 @@
+{
+  "startup": {
+    "title": "The startup handshake",
+    "body": "What you just watched is the connection coming alive. The client opens with a StartupMessage stating who it is and which database it wants; the server replies with an Authentication challenge (or AuthenticationOK if no auth is required); after credentials clear, the server volunteers a flurry of ParameterStatus messages and a BackendKeyData, then declares itself idle with ReadyForQuery. The ParameterStatus messages are unsolicited — the server tells the client about settings it should know (server_version, client_encoding, application_name, …) so the client never has to ask. Once you see ReadyForQuery(I), the connection is open and the first user-level command can be sent."
+  },
+  "scram_exchange": {
+    "title": "SCRAM-SHA-256 in three legs",
+    "body": "SCRAM is a mutual-authentication protocol. The server says \"prove who you are using one of these mechanisms\" (AuthenticationSASL), the client picks SCRAM-SHA-256 and sends a client-first message containing a random nonce (SASLResponse). The server responds with its own nonce, a salt, and an iteration count (AuthenticationSASLContinue) — the client uses these to derive a proof that it knows the password without ever sending it. The client returns that proof (SASLResponse); the server verifies it and sends back its own proof (AuthenticationSASLFinal) so the client knows it's talking to the real server. Only then does AuthenticationOK appear."
+  },
+  "extended_query_batch": {
+    "title": "Pipelining the extended-query protocol",
+    "body": "Notice that the client just sent Parse, Bind, Describe, Execute, and Sync back-to-back without waiting for a single reply. This is the whole point of the extended-query protocol: the client fires the entire batch and then reads the five responses in order (ParseComplete, BindComplete, RowDescription/NoData, then DataRows + CommandComplete, then ReadyForQuery). Compare this with a simple Query message, which is one round trip with a streaming reply — the extended protocol trades simplicity for the ability to send parameters out-of-band, reuse prepared statements, and request binary result formats. Sync at the end is what tells the server \"that's the batch; reply with ReadyForQuery and resync error state.\""
+  },
+  "simple_query_cycle": {
+    "title": "The simplest request/response",
+    "body": "This is the simple-query protocol at its most basic: one Query message carrying a SQL string, one RowDescription describing the columns, a stream of DataRow messages (one per row), a CommandComplete with the result tag (\"SELECT 3\"), and finally a ReadyForQuery to say the server is idle again. No preparation, no parameters, no cursor. If the same query were sent through the extended-query protocol you'd see five messages outbound and many more on the way back — simple-query trades flexibility for fewer messages on the wire."
+  },
+  "error_recovery": {
+    "title": "How the server recovers from errors",
+    "body": "Whenever the server sends ErrorResponse, it then sends a ReadyForQuery to tell the client that any in-flight statement has been abandoned and the connection is ready for the next command. In the middle of an extended-query batch (Parse/Bind/Describe/Execute), the server skips every remaining message until it sees a Sync — that's why Sync exists: to mark a re-sync point after an error. If you ever wondered why your driver eats the rest of a batch after one bad statement, this is the rule."
+  }
+}

@@ -1,0 +1,19 @@
+Packet (F)
+2026-05-21T07:41:45.8745900Z	F	26	Parse	statement=, query=SELECT pg_sleep(2), parameter oids=[]
+2026-05-21T07:41:45.8745900Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:45.8745900Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:45.8745900Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:45.8745900Z	F	4	Sync	SyncMessage
+Packet (F)
+2026-05-21T07:41:46.1904140Z	F	8	GSSENCRequest	GSSENCRequestMessage
+Packet (B)
+2026-05-21T07:41:46.4764320Z	B	1	GSSENCResponse	GSSENCResponseMessage
+Packet (F)
+2026-05-21T07:41:46.4779690Z	F	16	CancelRequest	pid=49040, secret=6736EEB6
+Packet (B)
+2026-05-21T07:41:46.4789340Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:46.4789340Z	B	4	BindComplete	
+2026-05-21T07:41:46.4789340Z	B	33	RowDescription	[pg_sleep: 0, 0, 2278, 4, -1, 1]
+2026-05-21T07:41:46.4789340Z	B	104	ErrorResponse	[S: ERROR, V: ERROR, C: 57014, M: canceling statement due to user request, F: postgres.c, L: 3465, R: ProcessInterrupts]
+Packet (B)
+2026-05-21T07:41:46.4794030Z	B	5	ReadyForQuery	Idle

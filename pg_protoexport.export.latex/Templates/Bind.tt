@@ -1,0 +1,118 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5; // 1 byte code + 4 bytes length header
+#>
+\begin{leftwordgroup}{Bind}
+    \bitbox{1}[bgcolor=lightcyan]{B} &
+    \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitWrappingCString("portal: ", this.Message.PortalName, rowWidth, ref usedBytes) #><#= LatexHelper.EmitWrappingCString("statement: ", this.Message.StatementName, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox("paramFormats: " + this.ParamFormatCount, 2, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+    foreach (short fmt in this.ParamFormats)
+    {
+    #><#= LatexHelper.EmitFixedBitbox(LatexHelper.ToFormatString(fmt), 2, rowWidth, ref usedBytes) #><#
+    }
+    #><#= LatexHelper.EmitFixedBitbox("paramValues: " + this.ParamValuesCount, 2, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+    int paramIdx = 0;
+    foreach ((int Length, byte[] Data) v in this.ParamValues)
+    {
+        paramIdx++;
+    #><#= LatexHelper.EmitFixedBitbox("length" + paramIdx + ": " + v.Length, 4, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+        if (v.Length > 0)
+        {
+            string hex = Convert.ToHexStringLower(v.Data);
+    #><#= LatexHelper.EmitWrappingBitboxes("p" + paramIdx + ": ", hex, v.Length, rowWidth, ref usedBytes) #><#
+        }
+    }
+    #><#= LatexHelper.EmitFixedBitbox("resultFormats: " + this.ResultFormatsCount, 2, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+    foreach (short rf in this.ResultFormats)
+    {
+    #><#= LatexHelper.EmitFixedBitbox(LatexHelper.ToFormatString(rf), 2, rowWidth, ref usedBytes) #><#
+    }
+    #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+\end{leftwordgroup}
+<# } else { #>
+
+\begin{leftwordgroup}{Bind}
+    \bitbox{1}[bgcolor=lightcyan]{B} &
+    \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+    \bitbox{13}{portal:<#= this.Portal #>} &
+    \bitbox{14}{statement:<#= LatexHelper.Unescape(this.Statement) #>}
+
+    \\
+
+    \begin{rightwordgroup}{\small Parameter formats}
+        \bitbox{2}[bgcolor=lightergreen]{\rotatebox{90}{\tiny count:<#= this.ParamFormatCount #>}} &
+<#
+int formatIndex = 0;
+foreach (short format in this.ParamFormats)
+{
+#>
+         \bitbox{2}{\rotatebox{90}{\tiny <#= LatexHelper.ToFormatString(format) #>}} &
+<#
+    formatIndex++;
+}
+#>
+        \bitbox{<#= 30 - 2 * formatIndex #>}[bgcolor=lightgray]{}
+    \end{rightwordgroup}  \\
+
+    \begin{rightwordgroup}{\small Parameter values \\ \tiny \it unspecified (OUT params): \\ \tiny \it length=-1, no value}
+        \bitbox{2}[bgcolor=lightergreen]{\rotatebox{90}{\tiny count:<#= this.ParamValuesCount #>}} &
+<#
+// fields are length+data except for null fields (only length)
+int valuesIndex = 0;
+int usedBytes = 2;
+foreach ((int Length, byte[] Data) value in this.ParamValues)
+{
+    CheckOverflow(ref usedBytes, 4);
+    valuesIndex++;
+    usedBytes += 4;
+
+#>      \bitbox{4}[bgcolor=lightergreen]{\small length<#= valuesIndex #>: <#= value.Length #>} & <#
+    if (value.Length != -1)
+    {
+        usedBytes += 4;
+#>      \bitbox{4}{\small param<#= valuesIndex #> data} & <#
+    }
+}
+#>
+        \bitbox{<#= 32 - usedBytes #>}[bgcolor=lightgray]{}
+    \end{rightwordgroup}  \\
+
+
+    \begin{rightwordgroup}{\small Result formats \\ \tiny 0 (text) or 1 (binary)}
+        \bitbox{2}[bgcolor=lightergreen]{\rotatebox{90}{\tiny count:<#= this.ResultFormatsCount #>}} &
+<#
+    int resultFormatIndex = 0;
+    foreach (var f in this.ResultFormats)
+    {
+#>      \bitbox{2}{\rotatebox{90}{\tiny <#= LatexHelper.ToFormatString(f) #>}} & <#
+
+        resultFormatIndex++;
+     }
+#>
+        \bitbox{<#= 32 - 2 - 2 * resultFormatIndex #>}[bgcolor=lightgray]{}
+    \end{rightwordgroup}
+
+\end{leftwordgroup}
+<# } #>
+
+<#
+    void CheckOverflow(ref int usedBytes, int bytesRequested)
+    {
+        int spaceLeft = 32 - usedBytes;
+        if (spaceLeft >= bytesRequested)
+            return;
+
+        // need to go to new line
+        usedBytes = 0;
+#>      \bitbox{<#= spaceLeft #>}[bgcolor=lightgray]{} \\ <#
+    }
+#>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 4;
+#>

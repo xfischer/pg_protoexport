@@ -1,0 +1,31 @@
+Packet (F)
+2026-05-21T07:41:39.7708100Z	F	34	Parse	statement=, query=SELECT 'hello' AS greeting, parameter oids=[]
+2026-05-21T07:41:39.7708100Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:39.7708100Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:39.7708100Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:39.7708100Z	F	37	Parse	statement=, query=SELECT now()   AS server_time, parameter oids=[]
+2026-05-21T07:41:39.7708100Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:39.7708100Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:39.7708100Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:39.7708100Z	F	33	Parse	statement=, query=SELECT count(*) FROM film, parameter oids=[]
+2026-05-21T07:41:39.7708100Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:39.7708100Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:39.7708100Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:39.7708100Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:39.7817960Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:39.7817960Z	B	4	BindComplete	
+2026-05-21T07:41:39.7817960Z	B	33	RowDescription	[greeting: 0, 0, 25, -1, -1, 1]
+2026-05-21T07:41:39.7817960Z	B	15	DataRow	[greeting:68656c6c6f]
+2026-05-21T07:41:39.7817960Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:39.7817960Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:39.7817960Z	B	4	BindComplete	
+2026-05-21T07:41:39.7817960Z	B	36	RowDescription	[server_time: 0, 0, 1184, 8, -1, 1]
+2026-05-21T07:41:39.7817960Z	B	18	DataRow	[server_time:0002f54dcfb9d64c]
+2026-05-21T07:41:39.7817960Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:39.7817960Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:39.7817960Z	B	4	BindComplete	
+2026-05-21T07:41:39.7817960Z	B	30	RowDescription	[count: 0, 0, 20, 8, -1, 1]
+2026-05-21T07:41:39.7817960Z	B	18	DataRow	[count:00000000000003e8]
+2026-05-21T07:41:39.7817960Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:39.7817960Z	B	5	ReadyForQuery	Idle

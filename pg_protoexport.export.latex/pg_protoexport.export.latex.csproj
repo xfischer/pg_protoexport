@@ -1,0 +1,438 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Spectre.Console.Cli" />
+    <PackageReference Include="System.CodeDom" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\pg_protoexport.core\pg_protoexport.core.csproj" />
+    <ProjectReference Include="..\pg_protoexport.cli.abstractions\pg_protoexport.cli.abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="pg_protoexport.tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Templates\AuthenticationGeneric.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AuthenticationGeneric.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\BackendKeyData.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BackendKeyData.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Bind.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Bind.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\BindComplete.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BindComplete.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CommandComplete.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandComplete.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\DataRow.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataRow.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Describe.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Describe.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ErrorResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Execute.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Execute.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\NoData.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NoData.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\NoticeResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NoticeResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Paging\Footer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Footer.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Paging\Header.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Header.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Paging\MessageSeparator.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MessageSeparator.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Paging\PacketFooter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PacketFooter.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Paging\PacketHeader.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PacketHeader.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ParameterDescription.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ParameterDescription.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ParameterStatus.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ParameterStatus.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Parse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Parse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ParseComplete.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ParseComplete.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Unknown.cs">
+      <DependentUpon>Unknown.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Templates\Query.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Query.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ReadyForQuery.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ReadyForQuery.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\RowDescription.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>RowDescription.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\SASLInitialResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SASLInitialResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\SASLResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SASLResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\SkippedWords.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SkippedWords.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\SSLRequest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SSLRequest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\SSLResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SSLResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\GSSENCRequest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GSSENCRequest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\GSSENCResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GSSENCResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CancelRequest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CancelRequest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyInResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyInResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyOutResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyOutResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyBothResponse.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyBothResponse.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyData.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyData.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyDone.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyDone.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\CopyFail.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CopyFail.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\StartupMessage.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StartupMessage.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Sync.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Sync.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Terminate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Terminate.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Templates\AuthenticationGeneric.tt">
+      <LastGenOutput>AuthenticationGeneric.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\BackendKeyData.tt">
+      <LastGenOutput>BackEndKeyData.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Bind.tt">
+      <LastGenOutput>Bind.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\BindComplete.tt">
+      <LastGenOutput>BindComplete.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CommandComplete.tt">
+      <LastGenOutput>CommandComplete.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\DataRow.tt">
+      <LastGenOutput>DataRow.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Describe.tt">
+      <LastGenOutput>Describe.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\ErrorResponse.tt">
+      <LastGenOutput>ErrorResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Execute.tt">
+      <LastGenOutput>Execute.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\NoData.tt">
+      <LastGenOutput>NoData.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\NoticeResponse.tt">
+      <LastGenOutput>NoticeResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Paging\Footer.tt">
+      <LastGenOutput>Footer.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Paging\Header.tt">
+      <LastGenOutput>Header.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Paging\MessageSeparator.tt">
+      <LastGenOutput>MessageSeparator.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Paging\PacketFooter.tt">
+      <LastGenOutput>PacketFooter.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Paging\PacketHeader.tt">
+      <LastGenOutput>PacketHeader.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\ParameterDescription.tt">
+      <LastGenOutput>ParameterDescription.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\ParameterStatus.tt">
+      <LastGenOutput>ParameterStatus.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Parse.tt">
+      <LastGenOutput>Parse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\ParseComplete.tt">
+      <LastGenOutput>ParseComplete.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Unknown.tt">
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+      <LastGenOutput>Unknown.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+    </None>
+    <None Update="Templates\Query.tt">
+      <LastGenOutput>Query.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\ReadyForQuery.tt">
+      <LastGenOutput>ReadyForQuery.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\RowDescription.tt">
+      <LastGenOutput>RowDescription.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\SASLInitialResponse.tt">
+      <LastGenOutput>SASLInitialResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\SASLResponse.tt">
+      <LastGenOutput>SASLResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\SkippedWords.tt">
+      <LastGenOutput>SkippedWords.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\SSLRequest.tt">
+      <LastGenOutput>SSLRequest.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\SSLResponse.tt">
+      <LastGenOutput>SSLResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\GSSENCRequest.tt">
+      <LastGenOutput>GSSENCRequest.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\GSSENCResponse.tt">
+      <LastGenOutput>GSSENCResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CancelRequest.tt">
+      <LastGenOutput>CancelRequest.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyInResponse.tt">
+      <LastGenOutput>CopyInResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyOutResponse.tt">
+      <LastGenOutput>CopyOutResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyBothResponse.tt">
+      <LastGenOutput>CopyBothResponse.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyData.tt">
+      <LastGenOutput>CopyData.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyDone.tt">
+      <LastGenOutput>CopyDone.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\CopyFail.tt">
+      <LastGenOutput>CopyFail.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\StartupMessage.tt">
+      <LastGenOutput>StartupMessage.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Sync.tt">
+      <LastGenOutput>Sync.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+    <None Update="Templates\Terminate.tt">
+      <LastGenOutput>Terminate.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <CustomToolNamespace>pg_protoexport.Templates</CustomToolNamespace>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+</Project>

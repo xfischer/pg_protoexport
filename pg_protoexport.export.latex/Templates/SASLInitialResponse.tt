@@ -1,0 +1,33 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5;
+#>
+\begin{leftwordgroup}{SASLInitialResponse}
+    \bitbox{1}[bgcolor=lightcyan]{p} &
+    \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitWrappingCString("mechanism: ", this.Message.Mechanism, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox("respLen: " + this.InitialResponseLength, 4, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+    if (this.InitialResponseLength > 0)
+    {
+    #><#= LatexHelper.EmitWrappingBitboxes(null, this.InitialResponseHex, this.InitialResponseLength, rowWidth, ref usedBytes) #><#
+    }
+    #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+\end{leftwordgroup}
+<# } else { #>
+
+\begin{leftwordgroup}{SASLInitialResponse}
+    \bitbox{1}[bgcolor=lightcyan]{p} &
+    \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+    \bitbox{8}{\small Mechanism: <#= this.Mechanism #>} &
+    \bitbox{4}[bgcolor=lightergreen]{length: <#= this.InitialResponseLength #>} &
+    \bitbox{15}{<#= this.InitialResponseLength #>}
+\end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1f;
+#>

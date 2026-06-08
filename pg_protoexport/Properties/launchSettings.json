@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "pg_protoexport": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "Postgres-LaTeX-article": {
+      "commandName": "Project",
+      "commandLineArgs": "latex SampleData/extendedQuery.pcapng 5432 SampleData/extendedQuery-article.tex"
+    },
+    "Postgres-LaTeX-standalone": {
+      "commandName": "Project",
+      "commandLineArgs": "latex SampleData/extendedQuery.pcapng 5432 --standalone"
+    },
+    "Postgres-PqTrace": {
+      "commandName": "Project",
+      "commandLineArgs": "pqtrace SampleData/extendedQuery.pcapng 5432"
+    },
+    "Postgres-Mermaid-SequenceDiagram": {
+      "commandName": "Project",
+      "commandLineArgs": "mermaid SampleData/extendedQuery.pcapng 5432 sequenceDiagram"
+    },
+    "Postgres-Mermaid-Packet": {
+      "commandName": "Project",
+      "commandLineArgs": "mermaid SampleData/extendedQuery.pcapng 5432 packet"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+Packet (F)
+2026-05-21T07:41:43.6723970Z	F	27	Parse	statement=, query=LISTEN demo_channel, parameter oids=[]
+2026-05-21T07:41:43.6723970Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:43.6723970Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:43.6723970Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:43.6723970Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:43.6728460Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:43.6728460Z	B	4	BindComplete	
+2026-05-21T07:41:43.6728460Z	B	4	NoData	NoDataMessage
+2026-05-21T07:41:43.6728460Z	B	11	CommandComplete	LISTEN
+2026-05-21T07:41:43.6728460Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:43.6802890Z	F	8	GSSENCRequest	GSSENCRequestMessage
+Packet (B)
+2026-05-21T07:41:43.9340740Z	B	1	GSSENCResponse	GSSENCResponseMessage
+Packet (F)
+2026-05-21T07:41:43.9346960Z	F	60	StartupMessage	minor=0, major=3, Parameters=[user: postgres, client_encoding: UTF8, database: pagila]
+Packet (B)
+2026-05-21T07:41:43.9372180Z	B	23	AuthenticationRequest	AuthenticationSASLMessage
+Packet (F)
+2026-05-21T07:41:43.9376430Z	F	55	Password	SASLInitialResponseMessage
+Packet (B)
+2026-05-21T07:41:43.9378110Z	B	92	AuthenticationRequest	AuthenticationSASLContinueMessage
+Packet (F)
+2026-05-21T07:41:43.9388380Z	F	108	Password	SASLResponseMessage
+Packet (B)
+2026-05-21T07:41:43.9455980Z	B	54	AuthenticationRequest	AuthenticationSASLFinalMessage
+2026-05-21T07:41:43.9455980Z	B	8	AuthenticationRequest	AuthenticationGenericMessage
+2026-05-21T07:41:43.9455980Z	B	23	ParameterStatus	in_hot_standby: off
+2026-05-21T07:41:43.9455980Z	B	25	ParameterStatus	integer_datetimes: on
+2026-05-21T07:41:43.9455980Z	B	26	ParameterStatus	TimeZone: Europe/Paris
+2026-05-21T07:41:43.9455980Z	B	27	ParameterStatus	IntervalStyle: postgres
+2026-05-21T07:41:43.9455980Z	B	32	ParameterStatus	search_path: "$user", public
+2026-05-21T07:41:43.9455980Z	B	20	ParameterStatus	is_superuser: on
+2026-05-21T07:41:43.9455980Z	B	22	ParameterStatus	application_name: 
+2026-05-21T07:41:43.9455980Z	B	38	ParameterStatus	default_transaction_read_only: off
+2026-05-21T07:41:43.9455980Z	B	26	ParameterStatus	scram_iterations: 4096
+2026-05-21T07:41:43.9455980Z	B	23	ParameterStatus	DateStyle: ISO, MDY
+2026-05-21T07:41:43.9455980Z	B	35	ParameterStatus	standard_conforming_strings: on
+2026-05-21T07:41:43.9455980Z	B	35	ParameterStatus	session_authorization: postgres
+2026-05-21T07:41:43.9455980Z	B	25	ParameterStatus	client_encoding: UTF8
+2026-05-21T07:41:43.9455980Z	B	24	ParameterStatus	server_version: 18.3
+2026-05-21T07:41:43.9455980Z	B	25	ParameterStatus	server_encoding: UTF8
+2026-05-21T07:41:43.9455980Z	B	12	BackendKeyData	PID: 13592, SecretKey: 4088747384
+2026-05-21T07:41:43.9455980Z	B	178	NoticeResponse	[S: NOTICE, V: NOTICE, C: 00000, M: Welcome to Pagila, the time is 2026-05-21 09:41:43.936041+02, W: PL/pgSQL function _welcome_message() line 3 at RAISE, F: pl_exec.c, L: 3923, R: exec_stmt_raise]
+Packet (B)
+2026-05-21T07:41:43.9458230Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:43.9463070Z	F	52	Parse	statement=, query=NOTIFY demo_channel, 'hello-from-other-conn', parameter oids=[]
+2026-05-21T07:41:43.9463070Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:43.9463070Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:43.9463070Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:43.9463070Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:43.9468660Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:43.9468660Z	B	4	BindComplete	
+2026-05-21T07:41:43.9468660Z	B	4	NoData	NoDataMessage
+2026-05-21T07:41:43.9468660Z	B	11	CommandComplete	NOTIFY
+2026-05-21T07:41:43.9468660Z	B	5	ReadyForQuery	Idle
+Packet (B)
+2026-05-21T07:41:43.9471480Z	B	43	Unknown	UnknownMessage
+Packet (F)
+2026-05-21T07:41:43.9500220Z	F	4	Terminate	TerminateMessage
+Packet (F)
+2026-05-21T07:41:44.1670650Z	F	16	Parse	statement=, query=SELECT 1, parameter oids=[]
+2026-05-21T07:41:44.1670650Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:44.1670650Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:44.1670650Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:44.1670650Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:44.1676760Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:44.1676760Z	B	4	BindComplete	
+2026-05-21T07:41:44.1676760Z	B	33	RowDescription	[?column?: 0, 0, 23, 4, -1, 1]
+2026-05-21T07:41:44.1676760Z	B	14	DataRow	[?column?:00000001]
+2026-05-21T07:41:44.1676760Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:44.1676760Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:44.1695520Z	F	29	Parse	statement=, query=UNLISTEN demo_channel, parameter oids=[]
+2026-05-21T07:41:44.1695520Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:44.1695520Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:44.1695520Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:44.1695520Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:44.1699520Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:44.1699520Z	B	4	BindComplete	
+2026-05-21T07:41:44.1699520Z	B	4	NoData	NoDataMessage
+2026-05-21T07:41:44.1699520Z	B	13	CommandComplete	UNLISTEN
+2026-05-21T07:41:44.1699520Z	B	5	ReadyForQuery	Idle

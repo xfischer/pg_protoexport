@@ -1,0 +1,11 @@
+Packet (F)
+2026-05-22T23:02:35.5987760Z	F	56	Query	COPY tmp_demo (id, name) FROM STDIN (FORMAT BINARY)
+Packet (B)
+2026-05-22T23:02:35.5991140Z	B	11	CopyInResponse	format=binary, columns=[1, 1]
+Packet (F)
+2026-05-22T23:02:35.6057050Z	F	85	CopyData	81 byte(s) [binary-header, magic OK, flags=0x00000000, ext=0]
+Packet (F)
+2026-05-22T23:02:35.6066330Z	F	4	CopyDone	CopyDoneMessage
+Packet (B)
+2026-05-22T23:02:35.6086220Z	B	11	CommandComplete	COPY 3
+2026-05-22T23:02:35.6086220Z	B	5	ReadyForQuery	Idle

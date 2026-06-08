@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{TITLE}} &mdash; pg_protoexport</title>
+<link rel="stylesheet" href="{{TITLE}}_assets/styles.css">
+</head>
+<body>
+<header>
+  <h1>PostgreSQL wire trace</h1>
+  <p class="subtitle">A guided reading of <strong>{{TITLE}}</strong>.</p>
+</header>
+
+<main>
+  <section id="overview">
+    <h2>Session overview</h2>
+    <div id="overview-diagrams"></div>
+  </section>
+
+  <nav id="filter-chips" aria-label="Card filters"></nav>
+
+  <div class="layout">
+    <section id="cards"></section>
+    <aside id="sidebar">
+      <h2>Protocol state</h2>
+      <dl id="state-list">
+        <dt>Connection</dt><dd id="state-conn">&mdash;</dd>
+        <dt>Transaction</dt><dd id="state-tx">&mdash;</dd>
+        <dt>Backend PID</dt><dd id="state-pid">&mdash;</dd>
+        <dt>COPY stream</dt><dd id="state-copy">(none)</dd>
+        <dt>Prepared statements</dt><dd id="state-prepared">(none)</dd>
+        <dt>Open portals</dt><dd id="state-portals">(none)</dd>
+        <dt>Server parameters</dt><dd id="state-params">(none)</dd>
+      </dl>
+    </aside>
+  </div>
+</main>
+
+<script id="protoexport-data" type="application/json">{{INLINE_DATA}}</script>
+<script src="{{TITLE}}_assets/mermaid.min.js"></script>
+<script src="{{TITLE}}_assets/app.js"></script>
+</body>
+</html>

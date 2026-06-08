@@ -1,0 +1,36 @@
+Packet (F)
+2026-05-21T07:41:40.8984390Z	F	56	Parse	statement=_p1, query=SELECT title FROM film WHERE film_id = $1, parameter oids=[23]
+2026-05-21T07:41:40.8984390Z	F	9	Describe	Statement: '_p1'
+2026-05-21T07:41:40.8984390Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:40.8989150Z	B	4	ParseComplete	ParseCompleteMessage
+2026-05-21T07:41:40.8989150Z	B	10	ParameterDescription	oids: [23]
+2026-05-21T07:41:40.8989150Z	B	30	RowDescription	[title: 1469070, 2, 1043, -1, 259, 0]
+2026-05-21T07:41:40.8989150Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:40.9012010Z	F	27	Bind	_p1: formats: [1], values len: [4], results format: [1]
+2026-05-21T07:41:40.9012010Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:40.9012010Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:40.9015630Z	B	4	BindComplete	
+2026-05-21T07:41:40.9015630Z	B	26	DataRow	[title:ACADEMY DINOSAUR]
+2026-05-21T07:41:40.9015630Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:40.9015630Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:40.9027000Z	F	27	Bind	_p1: formats: [1], values len: [4], results format: [1]
+2026-05-21T07:41:40.9027000Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:40.9027000Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:40.9030150Z	B	4	BindComplete	
+2026-05-21T07:41:40.9030150Z	B	25	DataRow	[title:AIRPLANE SIERRA]
+2026-05-21T07:41:40.9030150Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:40.9030150Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:40.9038540Z	F	27	Bind	_p1: formats: [1], values len: [4], results format: [1]
+2026-05-21T07:41:40.9038540Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:40.9038540Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:40.9040860Z	B	4	BindComplete	
+2026-05-21T07:41:40.9040860Z	B	21	DataRow	[title:ALI FOREVER]
+2026-05-21T07:41:40.9040860Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:40.9040860Z	B	5	ReadyForQuery	Idle

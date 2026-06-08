@@ -1,0 +1,25 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 4; // SSLRequest has NO code byte: 4 length + 4 payload = 8 bytes total
+#>
+\begin{leftwordgroup}{<#= this.Type #>}
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox("magic: " + this.Payload, 4, rowWidth, ref usedBytes) #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<# } else { #>
+
+\begin{leftwordgroup}{<#= this.Type #>}
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{4}{\tiny <#= this.Payload #>} &
+        \bitbox{24}[bgcolor=lightgray]{}
+    \end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes, hasCodeByte: false)
+            : 1f;
+#>

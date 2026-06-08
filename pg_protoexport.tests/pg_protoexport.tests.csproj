@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Spectre.Console.Cli.Testing" />
+    <PackageReference Include="Spectre.Console.Testing" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\pg_protoexport.core\pg_protoexport.core.csproj" />
+    <ProjectReference Include="..\pg_protoexport.cli.abstractions\pg_protoexport.cli.abstractions.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.ascii\pg_protoexport.export.ascii.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.html\pg_protoexport.export.html.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.latex\pg_protoexport.export.latex.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.mermaid\pg_protoexport.export.mermaid.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.plantuml\pg_protoexport.export.plantuml.csproj" />
+    <ProjectReference Include="..\pg_protoexport.export.pqtrace\pg_protoexport.export.pqtrace.csproj" />
+    <ProjectReference Include="..\pg_protoexport\pg_protoexport.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="TestData\extendedQuery.pcapng">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

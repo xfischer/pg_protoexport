@@ -1,0 +1,175 @@
+{
+  "Parse": {
+    "definition": "Frontend message that asks the server to prepare a (possibly named) SQL statement. Establishes the named prepared statement on the server.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-PARSE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "ParseComplete": {
+    "definition": "Backend message acknowledging that a Parse succeeded. The named prepared statement is now available.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-PARSECOMPLETE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Bind": {
+    "definition": "Frontend message that binds a prepared statement to a portal with concrete parameter values and result format codes.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-BIND",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "BindComplete": {
+    "definition": "Backend message acknowledging that a Bind succeeded. The portal is created and ready to be executed.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-BINDCOMPLETE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Execute": {
+    "definition": "Frontend message that runs the SQL behind a portal and streams back rows. Distinct from Sync.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-EXECUTE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Describe": {
+    "definition": "Frontend message asking the server to describe a statement (parameter types) or a portal (column types).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-DESCRIBE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Sync": {
+    "definition": "Frontend message that closes a batch of extended-query commands. The server responds with ReadyForQuery and resyncs error state.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-SYNC",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Query": {
+    "definition": "Frontend simple-query message: a single SQL string. Server runs it and streams back row descriptions, data, and CommandComplete.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-QUERY",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "Terminate": {
+    "definition": "Frontend message that gracefully closes the connection. No reply expected.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-TERMINATE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "StartupMessage": {
+    "definition": "First message a frontend sends after connecting. Carries protocol version and the parameter list (user, database, application_name, ...).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-STARTUPMESSAGE"
+  },
+  "SSLRequest": {
+    "definition": "Frontend pseudo-message sent before StartupMessage to ask whether the server accepts TLS. Server replies with a single byte (S = yes, N = no).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-SSLREQUEST"
+  },
+  "SSLResponse": {
+    "definition": "Backend single-byte reply to SSLRequest: 'S' = TLS accepted (client should now begin TLS handshake), 'N' = TLS not supported (client should either give up or continue in cleartext).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-SSL"
+  },
+  "GSSENCRequest": {
+    "definition": "Frontend pseudo-message asking whether the server accepts GSSAPI encryption. Same 8-byte shape as SSLRequest, request code 80877104. Server replies with a single byte (G = yes, N = no).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-GSSENCREQUEST"
+  },
+  "GSSENCResponse": {
+    "definition": "Backend single-byte reply to GSSENCRequest: 'G' = GSSAPI accepted, 'N' = GSSAPI not supported (client continues without GSS encryption).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-SSL"
+  },
+  "CancelRequest": {
+    "definition": "Frontend message sent on a fresh TCP connection to cancel an in-flight query on another connection. Carries the (pid, secret) pair the server sent earlier in BackendKeyData.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-CANCELREQUEST"
+  },
+  "ReadyForQuery": {
+    "definition": "Backend message indicating the server is idle and the transaction status: I (idle), T (in a transaction), E (in a failed transaction).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-READYFORQUERY",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "RowDescription": {
+    "definition": "Backend message that announces the schema of upcoming DataRow messages: column names, table OID, type OID, format code (0 = text, 1 = binary).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-ROWDESCRIPTION",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/access/common/printtup.c"
+  },
+  "DataRow": {
+    "definition": "Backend message carrying one row of values, one entry per column described by the preceding RowDescription.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-DATAROW",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/access/common/printtup.c"
+  },
+  "CommandComplete": {
+    "definition": "Backend message marking the end of a successful statement, with a command tag like 'SELECT 3' or 'INSERT 0 1'.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-COMMANDCOMPLETE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "ErrorResponse": {
+    "definition": "Backend message reporting an error. Carries fields keyed by single-letter codes (S=severity, C=SQLSTATE, M=message, D=detail, ...).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-ERRORRESPONSE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/utils/error/elog.c"
+  },
+  "NoticeResponse": {
+    "definition": "Backend message reporting a non-fatal notice (warning, info, ...). Same field layout as ErrorResponse.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NOTICERESPONSE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/utils/error/elog.c"
+  },
+  "ParameterStatus": {
+    "definition": "Backend broadcast of a server-side setting (e.g. server_version, client_encoding). Sent unprompted on startup and on change.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-PARAMETERSTATUS"
+  },
+  "ParameterDescription": {
+    "definition": "Backend response to a Describe-statement request, listing the OID of each parameter the prepared statement expects.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-PARAMETERDESCRIPTION",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "NoData": {
+    "definition": "Backend reply to a Describe when the statement or portal will not produce any rows (e.g. DML without RETURNING).",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-NODATA",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/tcop/postgres.c"
+  },
+  "BackendKeyData": {
+    "definition": "Backend message sent at startup carrying the server's process ID and a secret cancellation key. Needed to send a CancelRequest later.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-BACKENDKEYDATA"
+  },
+  "AuthenticationOK": {
+    "definition": "Backend message confirming authentication succeeded. The server then sends ParameterStatus, BackendKeyData, and ReadyForQuery.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONOK",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth.c"
+  },
+  "AuthenticationMD5Password": {
+    "definition": "Backend challenge asking the client to send a hashed (MD5 + salt) password. Legacy mechanism, superseded by SCRAM in modern Postgres.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONMD5PASSWORD",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth.c"
+  },
+  "AuthenticationSASL": {
+    "definition": "Backend message initiating SASL authentication, listing the SASL mechanisms (e.g. SCRAM-SHA-256) the server supports.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONSASL",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "AuthenticationSASLContinue": {
+    "definition": "Backend mid-handshake message carrying the SASL server-challenge for the next client step.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONSASLCONTINUE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "AuthenticationSASLFinal": {
+    "definition": "Backend final SASL message carrying the server's proof. After this, AuthenticationOK follows.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-AUTHENTICATIONSASLFINAL",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "SASLInitialResponse": {
+    "definition": "Frontend response to AuthenticationSASL, carrying the chosen mechanism name and the initial SASL client-first message.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-SASLINITIALRESPONSE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "SASLResponse": {
+    "definition": "Frontend follow-up SASL message answering AuthenticationSASLContinue.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-SASLRESPONSE",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "SCRAM": {
+    "definition": "Salted Challenge Response Authentication Mechanism. The default password authentication in modern Postgres (RFC 5802).",
+    "docLink": "https://www.postgresql.org/docs/current/sasl-authentication.html",
+    "srcLink": "https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/libpq/auth-scram.c"
+  },
+  "OID": {
+    "definition": "Object identifier: a 4-byte integer Postgres uses internally to identify a type, table, function, etc. Common type OIDs: 23 = int4, 25 = text, 1043 = varchar.",
+    "docLink": "https://www.postgresql.org/docs/current/datatype-oid.html"
+  },
+  "Portal": {
+    "definition": "A server-side cursor created by Bind, holding a prepared statement together with concrete parameter values. Read with Execute.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY"
+  },
+  "extended query": {
+    "definition": "Multi-step query protocol (Parse -> Bind -> Describe -> Execute -> Sync) that allows prepared statements, parameter binding, and pipelining.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY"
+  },
+  "simple query": {
+    "definition": "Single-message Query protocol: one SQL string in, one full result stream out, no parameters, no preparation.",
+    "docLink": "https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-SIMPLE-QUERY"
+  }
+}

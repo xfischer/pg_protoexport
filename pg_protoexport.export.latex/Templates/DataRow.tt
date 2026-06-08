@@ -1,0 +1,77 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5; // 1 byte code + 4 bytes length header
+#>
+    \begin{leftwordgroup}{DataRow}
+        \bitbox{1}[bgcolor=lightcyan]{D} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox("fields: " + this.FieldCount, 2, rowWidth, ref usedBytes) #><#
+    foreach (var f in this.Fields)
+    {
+        // 4-byte int32 length prefix per column.
+    #><#= LatexHelper.EmitFixedBitbox("length: " + f.Length, 4, rowWidth, ref usedBytes, bgcolor: "lightergreen") #><#
+        if (f.Length > 0)
+        {
+            if (f.IsText)
+            {
+    #><#= LatexHelper.EmitWrappingBitboxes(null, f.RawText, f.Length, rowWidth, ref usedBytes) #><#
+            }
+            else if (f.Length <= rowWidth)
+            {
+                // Binary: emit full hex pairs as a label in a single byte-accurate cell.
+    #><#= LatexHelper.EmitFixedBitbox(f.RawText, f.Length, rowWidth, ref usedBytes) #><#
+            }
+            else
+            {
+                // Long binary: wrap the hex stream; one hex byte == one wire byte.
+    #><#= LatexHelper.EmitWrappingBitboxes(null, f.RawText, f.Length, rowWidth, ref usedBytes) #><#
+            }
+        }
+    }
+    #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<# } else { #>
+
+    \begin{leftwordgroup}{DataRow}
+        \bitbox{1}[bgcolor=lightcyan]{D} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{2}{\rotatebox{90}{\tiny fields: <#= this.FieldCount #> }} &
+        \bitbox{25}[bgcolor=lightgray]{}
+
+        <#
+            foreach(var f in this.Fields)
+            {
+        #>
+        \\
+        \begin{rightwordgroup}{<#= f.Name #>}
+        <#
+                if (f.Length > 0)
+                {
+        #>
+            \bitbox{4}[bgcolor=lightergreen]{\small length: <#= f.Length #>} &
+            \bitbox{28}{\small <#= f.Data ?? "" #>}
+        <#
+                }
+                else
+                {
+        #>
+            \bitbox{4}[bgcolor=lightergreen]{\small length: <#= f.Length #>} &
+            \bitbox{28}[bgcolor=lightgray]{}
+        <#
+                }
+        #>
+        \end{rightwordgroup}
+        <#
+            }
+        #>
+    \end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1 + this.Fields.Count;
+#>

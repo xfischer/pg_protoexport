@@ -1,0 +1,26 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5;
+#>
+    \begin{leftwordgroup}{Terminate}
+        \bitbox{1}[bgcolor=lightcyan]{X} &
+        \bitbox{4}[bgcolor=lightgreen]{length: 4}<#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<# } else { #>
+
+    \begin{leftwordgroup}{Terminate}
+        \bitbox{1}[bgcolor=lightcyan]{X} &
+        \bitbox{4}[bgcolor=lightgreen]{length: 4} &
+        \bitbox{27}[bgcolor=lightgray]{}
+    \end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(4, this.Render.RowWidthBytes)
+            : 1f;
+#>

@@ -1,0 +1,13 @@
+Packet (F)
+2026-05-21T07:41:44.7256720Z	F	102	Query	COPY (SELECT actor_id, first_name FROM actor ORDER BY actor_id LIMIT 5) TO STDOUT (FORMAT BINARY)
+Packet (B)
+2026-05-21T07:41:44.7295850Z	B	11	CopyOutResponse	format=binary, columns=[1, 1]
+2026-05-21T07:41:44.7295850Z	B	45	CopyData	41 byte(s) [binary-header, magic OK, flags=0x00000000, ext=0]
+2026-05-21T07:41:44.7295850Z	B	22	CopyData	18 byte(s) [binary]
+2026-05-21T07:41:44.7295850Z	B	20	CopyData	16 byte(s) [binary]
+2026-05-21T07:41:44.7295850Z	B	26	CopyData	22 byte(s) [binary]
+2026-05-21T07:41:44.7295850Z	B	24	CopyData	20 byte(s) [binary]
+2026-05-21T07:41:44.7295850Z	B	6	CopyData	2 byte(s) [binary-trailer]
+2026-05-21T07:41:44.7295850Z	B	4	CopyDone	CopyDoneMessage
+2026-05-21T07:41:44.7295850Z	B	11	CommandComplete	COPY 5
+2026-05-21T07:41:44.7295850Z	B	5	ReadyForQuery	Idle

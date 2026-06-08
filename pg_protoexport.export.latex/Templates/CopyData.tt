@@ -1,0 +1,72 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5;
+    if (this.IsHeader) {
+        string sigLabel = "sig: " + (this.SignatureValid ? "PGCOPY OK" : "MISMATCH");
+        string flagsLabel = "flags: " + this.FlagsHex;
+        string extLenLabel = "ext-len: " + this.HeaderExtensionLength;
+#>
+\begin{leftwordgroup}{CopyData (binary header)}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox(sigLabel, 11, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox(flagsLabel, 4, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox(extLenLabel, 4, rowWidth, ref usedBytes) #><#
+        if (this.HeaderExtensionPreviewLength > 0) {
+            #><#= LatexHelper.EmitFixedBitbox("ext (" + this.HeaderExtensionPreviewLength + "b)", System.Math.Min(this.HeaderExtensionPreviewLength, rowWidth), rowWidth, ref usedBytes) #><#
+        }
+        int tupleBytes = this.DataLength - 19 - this.HeaderExtensionPreviewLength;
+        if (tupleBytes > 0) {
+            #><#= LatexHelper.EmitFixedBitbox("tuple (" + tupleBytes + "b)", System.Math.Min(tupleBytes, rowWidth - usedBytes > 0 ? rowWidth - usedBytes : rowWidth), rowWidth, ref usedBytes) #><#
+        }
+        #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<#  } else if (this.IsTrailer) { #>
+\begin{leftwordgroup}{CopyData (binary trailer)}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox("trailer: FF FF", 2, rowWidth, ref usedBytes) #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<#  } else {
+        string label = "data (" + this.DataLength + " bytes" + (this.Truncated ? ", preview" : "") + (this.IsBinary ? ", binary tuple" : "") + ")";
+#>
+\begin{leftwordgroup}{CopyData}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox(label, 8, rowWidth, ref usedBytes) #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+    \end{leftwordgroup}
+<#  }
+} else { #>
+<#  if (this.IsHeader) { #>
+
+\begin{leftwordgroup}{CopyData (binary header)}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{11}{\tiny sig: <#= this.SignatureValid ? "PGCOPY OK" : "MISMATCH" #>} &
+        \bitbox{4}{\tiny flags: <#= this.FlagsHex #>} &
+        \bitbox{4}{\tiny ext-len: <#= this.HeaderExtensionLength #>} &
+        \bitbox{8}[bgcolor=lightgray]{\tiny <#= this.PreviewHex #>}
+    \end{leftwordgroup}
+<#  } else if (this.IsTrailer) { #>
+
+\begin{leftwordgroup}{CopyData (binary trailer)}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{2}{\tiny FF FF} &
+        \bitbox{25}[bgcolor=lightgray]{\tiny end-of-stream}
+    \end{leftwordgroup}
+<#  } else { #>
+
+\begin{leftwordgroup}{CopyData<#= this.IsBinary ? " (binary tuple)" : "" #>}
+        \bitbox{1}[bgcolor=lightcyan]{d} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{8}{\tiny data: <#= this.DataLength #> bytes<#= this.Truncated ? " (preview)" : "" #>} &
+        \bitbox{19}[bgcolor=lightgray]{\tiny <#= this.PreviewHex #>}
+    \end{leftwordgroup}
+<#  }
+} #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1f;
+#>

@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="pg_protoexport.cli.abstractions/pg_protoexport.cli.abstractions.csproj" />
+    <Project Path="pg_protoexport.core/pg_protoexport.core.csproj" />
+  </Folder>
+  <Folder Name="/Exporters/">
+    <Project Path="pg_protoexport.export.ascii/pg_protoexport.export.ascii.csproj" />
+    <Project Path="pg_protoexport.export.html/pg_protoexport.export.html.csproj" />
+    <Project Path="pg_protoexport.export.latex/pg_protoexport.export.latex.csproj" />
+    <Project Path="pg_protoexport.export.mermaid/pg_protoexport.export.mermaid.csproj" />
+    <Project Path="pg_protoexport.export.plantuml/pg_protoexport.export.plantuml.csproj" />
+    <Project Path="pg_protoexport.export.pqtrace/pg_protoexport.export.pqtrace.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="BasicSample/BasicSample.csproj" />
+    <Project Path="pg_protoexport.samples.pagila/pg_protoexport.samples.pagila.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="pg_protoexport.tests/pg_protoexport.tests.csproj" />
+  </Folder>
+  <Project Path="pg_protoexport/pg_protoexport.csproj" />
+</Solution>

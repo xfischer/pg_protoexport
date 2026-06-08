@@ -1,0 +1,27 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 5;
+#>
+\begin{leftwordgroup}{ParameterStatus}
+        \bitbox{1}[bgcolor=lightcyan]{S} &
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitWrappingCString("name: ", this.Message.ParameterName, rowWidth, ref usedBytes) #><#= LatexHelper.EmitWrappingCString("value: ", this.Message.Value, rowWidth, ref usedBytes) #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+\end{leftwordgroup}
+<# } else { #>
+
+\begin{leftwordgroup}{ParameterStatus}
+        \bitbox{1}[bgcolor=lightcyan]{S} &
+        \bitbox{4}[bgcolor=lightgreen]{\small length: <#= this.Length #>} &
+        \bitbox{13}{\small <#= this.ParamName #>} &
+        \bitbox{14}{\small <#= this.ParamValue #>}
+\end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes)
+            : 1f;
+#>

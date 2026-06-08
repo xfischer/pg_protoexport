@@ -1,0 +1,10 @@
+Packet (F)
+2026-05-21T07:41:43.1250750Z	F	40	Parse	statement=, query=SELECT * FROM not_a_table_at_all, parameter oids=[]
+2026-05-21T07:41:43.1250750Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-05-21T07:41:43.1250750Z	F	6	Describe	Portal: ''
+2026-05-21T07:41:43.1250750Z	F	9	Execute	portal='', maxrows=0
+2026-05-21T07:41:43.1250750Z	F	4	Sync	SyncMessage
+Packet (B)
+2026-05-21T07:41:43.1256570Z	B	117	ErrorResponse	[S: ERROR, V: ERROR, C: 42P01, M: relation "not_a_table_at_all" does not exist, P: 15, F: parse_relation.c, L: 1469, R: parserOpenTable]
+Packet (B)
+2026-05-21T07:41:43.1264450Z	B	5	ReadyForQuery	Idle

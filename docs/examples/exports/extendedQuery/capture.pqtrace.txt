@@ -1,0 +1,24 @@
+Packet (F)
+2025-03-13T06:36:30.1436940Z	F	83	Parse	statement=, query=select oid, typname, typtype from pg_type where typtype <> $1 limit 10;, parameter oids=[25]
+2025-03-13T06:36:30.1436940Z	F	19	Bind	: formats: [], values len: [1], results format: [1]
+2025-03-13T06:36:30.1436940Z	F	6	Describe	Portal: ''
+2025-03-13T06:36:30.1436940Z	F	9	Execute	portal='', maxrows=0
+2025-03-13T06:36:30.1436940Z	F	4	Sync	SyncMessage
+Packet (B)
+2025-03-13T06:36:30.1444240Z	B	4	ParseComplete	ParseCompleteMessage
+2025-03-13T06:36:30.1444240Z	B	4	BindComplete	
+2025-03-13T06:36:30.1444240Z	B	80	RowDescription	[oid: 1247, 1, 26, 4, -1, 1, typname: 1247, 2, 19, 64, -1, 1, typtype: 1247, 7, 18, 1, -1, 1]
+2025-03-13T06:36:30.1444240Z	B	30	DataRow	[oid:00000047, typname:pg_type, typtype:c]
+2025-03-13T06:36:30.1444240Z	B	35	DataRow	[oid:0000004b, typname:pg_attribute, typtype:c]
+2025-03-13T06:36:30.1444240Z	B	30	DataRow	[oid:00000051, typname:pg_proc, typtype:c]
+2025-03-13T06:36:30.1444240Z	B	31	DataRow	[oid:00000053, typname:pg_class, typtype:c]
+2025-03-13T06:36:30.1444240Z	B	37	DataRow	[oid:00000020, typname:pg_ddl_command, typtype:p]
+2025-03-13T06:36:30.1444240Z	B	30	DataRow	[oid:000002c1, typname:unknown, typtype:p]
+2025-03-13T06:36:30.1444240Z	B	32	DataRow	[oid:00000f40, typname:int4range, typtype:r]
+2025-03-13T06:36:30.1444240Z	B	31	DataRow	[oid:00000f42, typname:numrange, typtype:r]
+2025-03-13T06:36:30.1444240Z	B	30	DataRow	[oid:00000f44, typname:tsrange, typtype:r]
+2025-03-13T06:36:30.1444240Z	B	32	DataRow	[oid:00000f46, typname:tstzrange, typtype:r]
+2025-03-13T06:36:30.1444240Z	B	14	CommandComplete	SELECT 10
+2025-03-13T06:36:30.1444240Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2025-03-13T06:36:30.1607910Z	F	4	Terminate	TerminateMessage

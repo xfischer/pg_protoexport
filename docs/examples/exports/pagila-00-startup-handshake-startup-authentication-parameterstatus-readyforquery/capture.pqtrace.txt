@@ -1,0 +1,303 @@
+Packet (F)
+2026-05-21T07:41:37.5841670Z	F	8	GSSENCRequest	GSSENCRequestMessage
+Packet (B)
+2026-05-21T07:41:37.8691450Z	B	1	GSSENCResponse	GSSENCResponseMessage
+Packet (F)
+2026-05-21T07:41:37.8737230Z	F	60	StartupMessage	minor=0, major=3, Parameters=[user: postgres, client_encoding: UTF8, database: pagila]
+Packet (B)
+2026-05-21T07:41:37.8794240Z	B	23	AuthenticationRequest	AuthenticationSASLMessage
+Packet (F)
+2026-05-21T07:41:37.8883950Z	F	55	Password	SASLInitialResponseMessage
+Packet (B)
+2026-05-21T07:41:37.8888720Z	B	92	AuthenticationRequest	AuthenticationSASLContinueMessage
+Packet (F)
+2026-05-21T07:41:37.8941740Z	F	108	Password	SASLResponseMessage
+Packet (B)
+2026-05-21T07:41:37.9277680Z	B	54	AuthenticationRequest	AuthenticationSASLFinalMessage
+2026-05-21T07:41:37.9277680Z	B	8	AuthenticationRequest	AuthenticationGenericMessage
+2026-05-21T07:41:37.9277680Z	B	23	ParameterStatus	in_hot_standby: off
+2026-05-21T07:41:37.9277680Z	B	25	ParameterStatus	integer_datetimes: on
+2026-05-21T07:41:37.9277680Z	B	26	ParameterStatus	TimeZone: Europe/Paris
+2026-05-21T07:41:37.9277680Z	B	27	ParameterStatus	IntervalStyle: postgres
+2026-05-21T07:41:37.9277680Z	B	32	ParameterStatus	search_path: "$user", public
+2026-05-21T07:41:37.9277680Z	B	20	ParameterStatus	is_superuser: on
+2026-05-21T07:41:37.9277680Z	B	22	ParameterStatus	application_name: 
+2026-05-21T07:41:37.9277680Z	B	38	ParameterStatus	default_transaction_read_only: off
+2026-05-21T07:41:37.9277680Z	B	26	ParameterStatus	scram_iterations: 4096
+2026-05-21T07:41:37.9277680Z	B	23	ParameterStatus	DateStyle: ISO, MDY
+2026-05-21T07:41:37.9277680Z	B	35	ParameterStatus	standard_conforming_strings: on
+2026-05-21T07:41:37.9277680Z	B	35	ParameterStatus	session_authorization: postgres
+2026-05-21T07:41:37.9277680Z	B	25	ParameterStatus	client_encoding: UTF8
+2026-05-21T07:41:37.9277680Z	B	24	ParameterStatus	server_version: 18.3
+2026-05-21T07:41:37.9277680Z	B	25	ParameterStatus	server_encoding: UTF8
+2026-05-21T07:41:37.9277680Z	B	12	BackendKeyData	PID: 49040, SecretKey: 1731653302
+2026-05-21T07:41:37.9277680Z	B	178	NoticeResponse	[S: NOTICE, V: NOTICE, C: 00000, M: Welcome to Pagila, the time is 2026-05-21 09:41:37.875905+02, W: PL/pgSQL function _welcome_message() line 3 at RAISE, F: pl_exec.c, L: 3923, R: exec_stmt_raise]
+Packet (B)
+2026-05-21T07:41:37.9281090Z	B	5	ReadyForQuery	Idle
+Packet (F)
+2026-05-21T07:41:37.9570290Z	F	3751	Query	SELECT version();
+
+SELECT ns.nspname, t.oid, t.typname, t.typtype, t.typnotnull, t.elemtypoid
+FROM (
+    -- Arrays have typtype=b - this subquery identifies them by their typreceive and converts their typtype to a
+    -- We first do this for the type (innerest-most subquery), and then for its element type
+    -- This also returns the array element, range subtype and domain base type as elemtypoid
+    SELECT
+        typ.oid, typ.typnamespace, typ.typname, typ.typtype, typ.typrelid, typ.typnotnull, typ.relkind,
+        elemtyp.oid AS elemtypoid, elemtyp.typname AS elemtypname, elemcls.relkind AS elemrelkind,
+        CASE WHEN elemproc.proname='array_recv' THEN 'a' ELSE elemtyp.typtype END AS elemtyptype
+        , typ.typcategory
+    FROM (
+        SELECT typ.oid, typnamespace, typname, typrelid, typnotnull, relkind, typelem AS elemoid,
+            CASE WHEN proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
+            CASE
+                WHEN proc.proname='array_recv' THEN typ.typelem
+                WHEN typ.typtype='r' THEN rngsubtype
+                WHEN typ.typtype='m' THEN (SELECT rngtypid FROM pg_range WHERE rngmultitypid = typ.oid)
+                WHEN typ.typtype='d' THEN typ.typbasetype
+            END AS elemtypoid
+            , typ.typcategory
+        FROM pg_type AS typ
+        LEFT JOIN pg_class AS cls ON (cls.oid = typ.typrelid)
+        LEFT JOIN pg_proc AS proc ON proc.oid = typ.typreceive
+        LEFT JOIN pg_range ON (pg_range.rngtypid = typ.oid)
+    ) AS typ
+    LEFT JOIN pg_type AS elemtyp ON elemtyp.oid = elemtypoid
+    LEFT JOIN pg_class AS elemcls ON (elemcls.oid = elemtyp.typrelid)
+    LEFT JOIN pg_proc AS elemproc ON elemproc.oid = elemtyp.typreceive
+) AS t
+JOIN pg_namespace AS ns ON (ns.oid = typnamespace)
+WHERE
+    
+    (typtype IN ('b', 'r', 'm', 'e', 'd') OR -- Base, range, multirange, enum, domain
+    (typtype = 'c' AND relkind='c') OR -- User-defined free-standing composites (not table composites) by default
+    (typtype = 'p' AND typname IN ('record', 'void', 'unknown')) OR -- Some special supported pseudo-types
+    (typtype = 'a' AND (  -- Array of...
+        elemtyptype IN ('b', 'r', 'm', 'e', 'd') OR -- Array of base, range, multirange, enum, domain
+        (elemtyptype = 'p' AND elemtypname IN ('record', 'void')) OR -- Arrays of special supported pseudo-types
+        (elemtyptype = 'c' AND elemrelkind='c') -- Array of user-defined free-standing composites (not table composites) by default
+    )))
+ORDER BY CASE
+       WHEN typtype IN ('b', 'e', 'p') THEN 0           -- First base types, enums, pseudo-types
+       WHEN typtype = 'c' THEN 1                        -- Composites after (fields loaded later in 2nd pass)
+       WHEN typtype = 'r' THEN 2                        -- Ranges after
+       WHEN typtype = 'm' THEN 3                        -- Multiranges after
+       WHEN typtype = 'd' AND elemtyptype <> 'a' THEN 4 -- Domains over non-arrays after
+       WHEN typtype = 'a' THEN 5                        -- Arrays after
+       WHEN typtype = 'd' AND elemtyptype = 'a' THEN 6  -- Domains over arrays last
+END;
+
+-- Load field definitions for (free-standing) composite types
+SELECT typ.oid, att.attname, att.atttypid
+FROM pg_type AS typ
+JOIN pg_namespace AS ns ON (ns.oid = typ.typnamespace)
+JOIN pg_class AS cls ON (cls.oid = typ.typrelid)
+JOIN pg_attribute AS att ON (att.attrelid = typ.typrelid)
+WHERE
+  (typ.typtype = 'c' AND cls.relkind='c') AND
+  
+  attnum > 0 AND     -- Don't load system attributes
+  NOT attisdropped
+ORDER BY typ.oid, att.attnum;
+
+-- Load enum fields
+SELECT typ.oid, enumlabel
+FROM pg_enum
+JOIN pg_type AS typ ON typ.oid = enumtypid
+JOIN pg_namespace AS ns ON ns.oid = typ.typnamespace
+
+ORDER BY oid, enumsortorder;
+
+Packet (B)
+2026-05-21T07:41:37.9956410Z	B	32	RowDescription	[version: 0, 0, 25, -1, -1, 0]
+2026-05-21T07:41:37.9956410Z	B	81	DataRow	[version:PostgreSQL 18.3 on x86_64-windows, compiled by msvc-19.44.35225, 64-bit]
+2026-05-21T07:41:37.9956410Z	B	13	CommandComplete	SELECT 1
+2026-05-21T07:41:37.9956410Z	B	164	RowDescription	[nspname: 2615, 2, 19, 64, -1, 0, oid: 1247, 1, 26, 4, -1, 0, typname: 1247, 2, 19, 64, -1, 0, typtype: 0, 0, 18, 1, -1, 0, typnotnull: 1247, 25, 16, 1, -1, 0, elemtypoid: 1247, 1, 26, 4, -1, 0]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:23, typname:int4, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:25, typname:text, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	47	DataRow	[nspname:pg_catalog, oid:26, typname:oid, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	47	DataRow	[nspname:pg_catalog, oid:27, typname:tid, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	47	DataRow	[nspname:pg_catalog, oid:28, typname:xid, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	47	DataRow	[nspname:pg_catalog, oid:29, typname:cid, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:30, typname:oidvector, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:114, typname:json, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:142, typname:xml, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:194, typname:pg_node_tree, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:3361, typname:pg_ndistinct, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	61	DataRow	[nspname:pg_catalog, oid:3402, typname:pg_dependencies, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:5017, typname:pg_mcv_list, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:5069, typname:xid8, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:600, typname:point, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:601, typname:lseg, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:602, typname:path, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:603, typname:box, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:604, typname:polygon, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:628, typname:line, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:pg_catalog, oid:700, typname:float4, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:pg_catalog, oid:701, typname:float8, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:705, typname:unknown, typtype:p, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:pg_catalog, oid:718, typname:circle, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:790, typname:money, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:829, typname:macaddr, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:869, typname:inet, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:650, typname:cidr, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:774, typname:macaddr8, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1033, typname:aclitem, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1042, typname:bpchar, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1043, typname:varchar, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:1082, typname:date, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:1083, typname:time, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:1114, typname:timestamp, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1184, typname:timestamptz, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1186, typname:interval, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1266, typname:timetz, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:1560, typname:bit, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1562, typname:varbit, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1700, typname:numeric, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:1790, typname:refcursor, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:2202, typname:regprocedure, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:2203, typname:regoper, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:2204, typname:regoperator, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:2205, typname:regclass, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:4191, typname:regcollation, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:2206, typname:regtype, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:4096, typname:regrole, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:4089, typname:regnamespace, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:2950, typname:uuid, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:3220, typname:pg_lsn, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:3614, typname:tsvector, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:3642, typname:gtsvector, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:3615, typname:tsquery, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:3734, typname:regconfig, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:3769, typname:regdictionary, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:pg_catalog, oid:3802, typname:jsonb, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:4072, typname:jsonpath, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:2970, typname:txid_snapshot, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:5038, typname:pg_snapshot, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:2249, typname:record, typtype:p, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	49	DataRow	[nspname:pg_catalog, oid:17, typname:bytea, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	56	DataRow	[nspname:public, oid:1469004, typname:mpaa_rating, typtype:e, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	50	DataRow	[nspname:pg_catalog, oid:2278, typname:void, typtype:p, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:16, typname:bool, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	67	DataRow	[nspname:pg_catalog, oid:4600, typname:pg_brin_bloom_summary, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	74	DataRow	[nspname:pg_catalog, oid:4601, typname:pg_brin_minmax_multi_summary, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:18, typname:char, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:19, typname:name, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:20, typname:int8, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	48	DataRow	[nspname:pg_catalog, oid:21, typname:int2, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:22, typname:int2vector, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:pg_catalog, oid:24, typname:regproc, typtype:b, typnotnull:f, elemtypoid:]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:3906, typname:numrange, typtype:r, typnotnull:f, elemtypoid:1700]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:3908, typname:tsrange, typtype:r, typnotnull:f, elemtypoid:1114]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:3926, typname:int8range, typtype:r, typnotnull:f, elemtypoid:20]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:3912, typname:daterange, typtype:r, typnotnull:f, elemtypoid:1082]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:3910, typname:tstzrange, typtype:r, typnotnull:f, elemtypoid:1184]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:3904, typname:int4range, typtype:r, typnotnull:f, elemtypoid:23]
+2026-05-21T07:41:37.9956410Z	B	64	DataRow	[nspname:pg_catalog, oid:4535, typname:datemultirange, typtype:m, typnotnull:f, elemtypoid:3912]
+2026-05-21T07:41:37.9956410Z	B	64	DataRow	[nspname:pg_catalog, oid:4536, typname:int8multirange, typtype:m, typnotnull:f, elemtypoid:3926]
+2026-05-21T07:41:37.9956410Z	B	64	DataRow	[nspname:pg_catalog, oid:4451, typname:int4multirange, typtype:m, typnotnull:f, elemtypoid:3904]
+2026-05-21T07:41:37.9956410Z	B	63	DataRow	[nspname:pg_catalog, oid:4532, typname:nummultirange, typtype:m, typnotnull:f, elemtypoid:3906]
+2026-05-21T07:41:37.9956410Z	B	62	DataRow	[nspname:pg_catalog, oid:4533, typname:tsmultirange, typtype:m, typnotnull:f, elemtypoid:3908]
+2026-05-21T07:41:37.9956410Z	B	64	DataRow	[nspname:pg_catalog, oid:4534, typname:tstzmultirange, typtype:m, typnotnull:f, elemtypoid:3910]
+2026-05-21T07:41:37.9956410Z	B	71	DataRow	[nspname:information_schema, oid:14879, typname:sql_identifier, typtype:d, typnotnull:f, elemtypoid:19]
+2026-05-21T07:41:37.9956410Z	B	73	DataRow	[nspname:information_schema, oid:14877, typname:character_data, typtype:d, typnotnull:f, elemtypoid:1043]
+2026-05-21T07:41:37.9956410Z	B	68	DataRow	[nspname:information_schema, oid:14887, typname:yes_or_no, typtype:d, typnotnull:f, elemtypoid:1043]
+2026-05-21T07:41:37.9956410Z	B	51	DataRow	[nspname:public, oid:1469016, typname:year, typtype:d, typnotnull:f, elemtypoid:23]
+2026-05-21T07:41:37.9956410Z	B	69	DataRow	[nspname:information_schema, oid:14885, typname:time_stamp, typtype:d, typnotnull:f, elemtypoid:1184]
+2026-05-21T07:41:37.9956410Z	B	72	DataRow	[nspname:information_schema, oid:14874, typname:cardinal_number, typtype:d, typnotnull:f, elemtypoid:23]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:public, oid:1469015, typname:_year, typtype:a, typnotnull:f, elemtypoid:1469016]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:2287, typname:_record, typtype:a, typnotnull:f, elemtypoid:2249]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1000, typname:_bool, typtype:a, typnotnull:f, elemtypoid:16]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1001, typname:_bytea, typtype:a, typnotnull:f, elemtypoid:17]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1002, typname:_char, typtype:a, typnotnull:f, elemtypoid:18]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1003, typname:_name, typtype:a, typnotnull:f, elemtypoid:19]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1016, typname:_int8, typtype:a, typnotnull:f, elemtypoid:20]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1005, typname:_int2, typtype:a, typnotnull:f, elemtypoid:21]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:1006, typname:_int2vector, typtype:a, typnotnull:f, elemtypoid:22]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1007, typname:_int4, typtype:a, typnotnull:f, elemtypoid:23]
+2026-05-21T07:41:37.9956410Z	B	56	DataRow	[nspname:pg_catalog, oid:1008, typname:_regproc, typtype:a, typnotnull:f, elemtypoid:24]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1009, typname:_text, typtype:a, typnotnull:f, elemtypoid:25]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1028, typname:_oid, typtype:a, typnotnull:f, elemtypoid:26]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1010, typname:_tid, typtype:a, typnotnull:f, elemtypoid:27]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1011, typname:_xid, typtype:a, typnotnull:f, elemtypoid:28]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:1012, typname:_cid, typtype:a, typnotnull:f, elemtypoid:29]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:1013, typname:_oidvector, typtype:a, typnotnull:f, elemtypoid:30]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:199, typname:_json, typtype:a, typnotnull:f, elemtypoid:114]
+2026-05-21T07:41:37.9956410Z	B	52	DataRow	[nspname:pg_catalog, oid:143, typname:_xml, typtype:a, typnotnull:f, elemtypoid:142]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:271, typname:_xid8, typtype:a, typnotnull:f, elemtypoid:5069]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:1017, typname:_point, typtype:a, typnotnull:f, elemtypoid:600]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1018, typname:_lseg, typtype:a, typnotnull:f, elemtypoid:601]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1019, typname:_path, typtype:a, typnotnull:f, elemtypoid:602]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:1020, typname:_box, typtype:a, typnotnull:f, elemtypoid:603]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1027, typname:_polygon, typtype:a, typnotnull:f, elemtypoid:604]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:629, typname:_line, typtype:a, typnotnull:f, elemtypoid:628]
+2026-05-21T07:41:37.9956410Z	B	56	DataRow	[nspname:pg_catalog, oid:1021, typname:_float4, typtype:a, typnotnull:f, elemtypoid:700]
+2026-05-21T07:41:37.9956410Z	B	56	DataRow	[nspname:pg_catalog, oid:1022, typname:_float8, typtype:a, typnotnull:f, elemtypoid:701]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:719, typname:_circle, typtype:a, typnotnull:f, elemtypoid:718]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:791, typname:_money, typtype:a, typnotnull:f, elemtypoid:790]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1040, typname:_macaddr, typtype:a, typnotnull:f, elemtypoid:829]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1041, typname:_inet, typtype:a, typnotnull:f, elemtypoid:869]
+2026-05-21T07:41:37.9956410Z	B	53	DataRow	[nspname:pg_catalog, oid:651, typname:_cidr, typtype:a, typnotnull:f, elemtypoid:650]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:775, typname:_macaddr8, typtype:a, typnotnull:f, elemtypoid:774]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:1034, typname:_aclitem, typtype:a, typnotnull:f, elemtypoid:1033]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1014, typname:_bpchar, typtype:a, typnotnull:f, elemtypoid:1042]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:1015, typname:_varchar, typtype:a, typnotnull:f, elemtypoid:1043]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:1182, typname:_date, typtype:a, typnotnull:f, elemtypoid:1082]
+2026-05-21T07:41:37.9956410Z	B	55	DataRow	[nspname:pg_catalog, oid:1183, typname:_time, typtype:a, typnotnull:f, elemtypoid:1083]
+2026-05-21T07:41:37.9956410Z	B	60	DataRow	[nspname:pg_catalog, oid:1115, typname:_timestamp, typtype:a, typnotnull:f, elemtypoid:1114]
+2026-05-21T07:41:37.9956410Z	B	62	DataRow	[nspname:pg_catalog, oid:1185, typname:_timestamptz, typtype:a, typnotnull:f, elemtypoid:1184]
+2026-05-21T07:41:37.9956410Z	B	59	DataRow	[nspname:pg_catalog, oid:1187, typname:_interval, typtype:a, typnotnull:f, elemtypoid:1186]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1270, typname:_timetz, typtype:a, typnotnull:f, elemtypoid:1266]
+2026-05-21T07:41:37.9956410Z	B	54	DataRow	[nspname:pg_catalog, oid:1561, typname:_bit, typtype:a, typnotnull:f, elemtypoid:1560]
+2026-05-21T07:41:37.9956410Z	B	57	DataRow	[nspname:pg_catalog, oid:1563, typname:_varbit, typtype:a, typnotnull:f, elemtypoid:1562]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:1231, typname:_numeric, typtype:a, typnotnull:f, elemtypoid:1700]
+2026-05-21T07:41:37.9956410Z	B	60	DataRow	[nspname:pg_catalog, oid:2201, typname:_refcursor, typtype:a, typnotnull:f, elemtypoid:1790]
+2026-05-21T07:41:37.9956410Z	B	63	DataRow	[nspname:pg_catalog, oid:2207, typname:_regprocedure, typtype:a, typnotnull:f, elemtypoid:2202]
+2026-05-21T07:41:37.9956410Z	B	58	DataRow	[nspname:pg_catalog, oid:2208, typname:_regoper, typtype:a, typnotnull:f, elemtypoid:2203]
+Packet (B)
+2026-05-21T07:41:38.0032840Z	B	62	DataRow	[nspname:pg_catalog, oid:2209, typname:_regoperator, typtype:a, typnotnull:f, elemtypoid:2204]
+2026-05-21T07:41:38.0032840Z	B	59	DataRow	[nspname:pg_catalog, oid:2210, typname:_regclass, typtype:a, typnotnull:f, elemtypoid:2205]
+2026-05-21T07:41:38.0032840Z	B	63	DataRow	[nspname:pg_catalog, oid:4192, typname:_regcollation, typtype:a, typnotnull:f, elemtypoid:4191]
+2026-05-21T07:41:38.0032840Z	B	58	DataRow	[nspname:pg_catalog, oid:2211, typname:_regtype, typtype:a, typnotnull:f, elemtypoid:2206]
+2026-05-21T07:41:38.0032840Z	B	58	DataRow	[nspname:pg_catalog, oid:4097, typname:_regrole, typtype:a, typnotnull:f, elemtypoid:4096]
+2026-05-21T07:41:38.0032840Z	B	63	DataRow	[nspname:pg_catalog, oid:4090, typname:_regnamespace, typtype:a, typnotnull:f, elemtypoid:4089]
+2026-05-21T07:41:38.0032840Z	B	55	DataRow	[nspname:pg_catalog, oid:2951, typname:_uuid, typtype:a, typnotnull:f, elemtypoid:2950]
+2026-05-21T07:41:38.0032840Z	B	57	DataRow	[nspname:pg_catalog, oid:3221, typname:_pg_lsn, typtype:a, typnotnull:f, elemtypoid:3220]
+2026-05-21T07:41:38.0032840Z	B	59	DataRow	[nspname:pg_catalog, oid:3643, typname:_tsvector, typtype:a, typnotnull:f, elemtypoid:3614]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3644, typname:_gtsvector, typtype:a, typnotnull:f, elemtypoid:3642]
+2026-05-21T07:41:38.0032840Z	B	58	DataRow	[nspname:pg_catalog, oid:3645, typname:_tsquery, typtype:a, typnotnull:f, elemtypoid:3615]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3735, typname:_regconfig, typtype:a, typnotnull:f, elemtypoid:3734]
+2026-05-21T07:41:38.0032840Z	B	64	DataRow	[nspname:pg_catalog, oid:3770, typname:_regdictionary, typtype:a, typnotnull:f, elemtypoid:3769]
+2026-05-21T07:41:38.0032840Z	B	56	DataRow	[nspname:pg_catalog, oid:3807, typname:_jsonb, typtype:a, typnotnull:f, elemtypoid:3802]
+2026-05-21T07:41:38.0032840Z	B	59	DataRow	[nspname:pg_catalog, oid:4073, typname:_jsonpath, typtype:a, typnotnull:f, elemtypoid:4072]
+2026-05-21T07:41:38.0032840Z	B	64	DataRow	[nspname:pg_catalog, oid:2949, typname:_txid_snapshot, typtype:a, typnotnull:f, elemtypoid:2970]
+2026-05-21T07:41:38.0032840Z	B	62	DataRow	[nspname:pg_catalog, oid:5039, typname:_pg_snapshot, typtype:a, typnotnull:f, elemtypoid:5038]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3905, typname:_int4range, typtype:a, typnotnull:f, elemtypoid:3904]
+2026-05-21T07:41:38.0032840Z	B	59	DataRow	[nspname:pg_catalog, oid:3907, typname:_numrange, typtype:a, typnotnull:f, elemtypoid:3906]
+2026-05-21T07:41:38.0032840Z	B	58	DataRow	[nspname:pg_catalog, oid:3909, typname:_tsrange, typtype:a, typnotnull:f, elemtypoid:3908]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3911, typname:_tstzrange, typtype:a, typnotnull:f, elemtypoid:3910]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3913, typname:_daterange, typtype:a, typnotnull:f, elemtypoid:3912]
+2026-05-21T07:41:38.0032840Z	B	60	DataRow	[nspname:pg_catalog, oid:3927, typname:_int8range, typtype:a, typnotnull:f, elemtypoid:3926]
+2026-05-21T07:41:38.0032840Z	B	65	DataRow	[nspname:pg_catalog, oid:6150, typname:_int4multirange, typtype:a, typnotnull:f, elemtypoid:4451]
+2026-05-21T07:41:38.0032840Z	B	64	DataRow	[nspname:pg_catalog, oid:6151, typname:_nummultirange, typtype:a, typnotnull:f, elemtypoid:4532]
+2026-05-21T07:41:38.0032840Z	B	63	DataRow	[nspname:pg_catalog, oid:6152, typname:_tsmultirange, typtype:a, typnotnull:f, elemtypoid:4533]
+2026-05-21T07:41:38.0032840Z	B	65	DataRow	[nspname:pg_catalog, oid:6153, typname:_tstzmultirange, typtype:a, typnotnull:f, elemtypoid:4534]
+2026-05-21T07:41:38.0032840Z	B	65	DataRow	[nspname:pg_catalog, oid:6155, typname:_datemultirange, typtype:a, typnotnull:f, elemtypoid:4535]
+2026-05-21T07:41:38.0032840Z	B	65	DataRow	[nspname:pg_catalog, oid:6157, typname:_int8multirange, typtype:a, typnotnull:f, elemtypoid:4536]
+2026-05-21T07:41:38.0032840Z	B	76	DataRow	[nspname:information_schema, oid:14873, typname:_cardinal_number, typtype:a, typnotnull:f, elemtypoid:14874]
+2026-05-21T07:41:38.0032840Z	B	75	DataRow	[nspname:information_schema, oid:14876, typname:_character_data, typtype:a, typnotnull:f, elemtypoid:14877]
+2026-05-21T07:41:38.0032840Z	B	75	DataRow	[nspname:information_schema, oid:14878, typname:_sql_identifier, typtype:a, typnotnull:f, elemtypoid:14879]
+2026-05-21T07:41:38.0032840Z	B	71	DataRow	[nspname:information_schema, oid:14884, typname:_time_stamp, typtype:a, typnotnull:f, elemtypoid:14885]
+2026-05-21T07:41:38.0032840Z	B	70	DataRow	[nspname:information_schema, oid:14886, typname:_yes_or_no, typtype:a, typnotnull:f, elemtypoid:14887]
+2026-05-21T07:41:38.0032840Z	B	64	DataRow	[nspname:public, oid:1469003, typname:_mpaa_rating, typtype:a, typnotnull:f, elemtypoid:1469004]
+2026-05-21T07:41:38.0032840Z	B	15	CommandComplete	SELECT 176
+2026-05-21T07:41:38.0032840Z	B	81	RowDescription	[oid: 1247, 1, 26, 4, -1, 0, attname: 1249, 2, 19, 64, -1, 0, atttypid: 1249, 3, 26, 4, -1, 0]
+2026-05-21T07:41:38.0032840Z	B	13	CommandComplete	SELECT 0
+2026-05-21T07:41:38.0032840Z	B	56	RowDescription	[oid: 1247, 1, 26, 4, -1, 0, enumlabel: 3501, 4, 19, 64, -1, 0]
+2026-05-21T07:41:38.0032840Z	B	22	DataRow	[oid:1469004, enumlabel:G]
+2026-05-21T07:41:38.0032840Z	B	23	DataRow	[oid:1469004, enumlabel:PG]
+2026-05-21T07:41:38.0032840Z	B	26	DataRow	[oid:1469004, enumlabel:PG-13]
+2026-05-21T07:41:38.0032840Z	B	22	DataRow	[oid:1469004, enumlabel:R]
+2026-05-21T07:41:38.0032840Z	B	26	DataRow	[oid:1469004, enumlabel:NC-17]
+2026-05-21T07:41:38.0032840Z	B	13	CommandComplete	SELECT 5
+2026-05-21T07:41:38.0032840Z	B	5	ReadyForQuery	Idle

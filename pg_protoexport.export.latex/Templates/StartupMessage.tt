@@ -1,0 +1,40 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<# if (this.Render.Exact) {
+    int rowWidth = this.Render.RowWidthBytes;
+    int usedBytes = 4; // no code byte: 4 length + 2 major + 2 minor + params
+#>
+\begin{leftwordgroup}{<#= this.Type #>}
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>}<#= LatexHelper.EmitFixedBitbox("maj.ver: " + this.VersionMajor, 2, rowWidth, ref usedBytes) #><#= LatexHelper.EmitFixedBitbox("min.ver: " + this.VersionMinor, 2, rowWidth, ref usedBytes) #><#
+    foreach (var p in this.Parameters)
+    {
+    #><#= LatexHelper.EmitWrappingCString(p.RawName + ": ", p.RawValue, rowWidth, ref usedBytes) #><#
+    }
+    // final null byte terminates the parameter list
+    #><#= LatexHelper.EmitFixedBitbox("\\0", 1, rowWidth, ref usedBytes) #><#= LatexHelper.EmitPadToRowEnd(ref usedBytes, rowWidth) #>
+\end{leftwordgroup}
+<# } else { #>
+
+\begin{leftwordgroup}{<#= this.Type #>}
+        \bitbox{4}[bgcolor=lightgreen]{length: <#= this.Length #>} &
+        \bitbox{2}{\tiny maj. ver. <#= this.VersionMajor #>} &
+        \bitbox{2}{\tiny min. ver. <#= this.VersionMinor #>} &
+        \bitbox{24}[bgcolor=lightgray]{}
+
+        <# foreach (var param in this.Parameters) { #>
+        \\
+        \begin{rightwordgroup}{parameter}
+            \bitbox{16}{<#= param.ParamName #>} &
+            \bitbox{16}{<#= param.ParamValue #>}
+        \end{rightwordgroup}
+        <# } #>
+\end{leftwordgroup}
+<# } #>
+<#+ float ITextTransformer.EstimateBytefieldRowCount() =>
+        this.Render.Exact
+            ? LatexHelper.CountExactRowsForMessage(this.Length, this.Render.RowWidthBytes, hasCodeByte: false)
+            : 1 + this.Parameters.Count;
+#>
