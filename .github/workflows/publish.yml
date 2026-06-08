@@ -1,0 +1,154 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  build-and-publish:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Windows x64
+          - os: windows-latest
+            rid: win-x64
+            artifact_name: pg_protoexport-win-x64
+            archive_format: zip
+
+          # macOS x64 (Intel)
+          - os: macos-latest
+            rid: osx-x64
+            artifact_name: pg_protoexport-osx-x64
+            archive_format: tar.gz
+
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            rid: osx-arm64
+            artifact_name: pg_protoexport-osx-arm64
+            archive_format: tar.gz
+
+          # Linux x64
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact_name: pg_protoexport-linux-x64
+            archive_format: tar.gz
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5.3.0
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish (Self-Contained)
+        run: |
+          dotnet publish pg_protoexport/pg_protoexport.csproj --output ./publish/${{ matrix.rid }} -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
+
+      - name: Create distribution directory
+        run: |
+          mkdir -p dist/${{ matrix.artifact_name }}
+          cp -r publish/${{ matrix.rid }}/* dist/${{ matrix.artifact_name }}/
+        shell: bash
+
+      - name: Set executable permissions (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x dist/${{ matrix.artifact_name }}/pg_protoexport
+        shell: bash
+
+      - name: Create ZIP archive (Windows)
+        if: matrix.archive_format == 'zip'
+        run: |
+          cd dist
+          7z a -tzip ${{ matrix.artifact_name }}.zip ${{ matrix.artifact_name }}
+        shell: bash
+
+      - name: Create tar.gz archive (Unix)
+        if: matrix.archive_format == 'tar.gz'
+        run: |
+          cd dist
+          tar -czf ${{ matrix.artifact_name }}.tar.gz ${{ matrix.artifact_name }}
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v8
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            dist/${{ matrix.artifact_name }}.zip
+            dist/${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: ignore
+          retention-days: 30
+
+  create-release:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir release-assets
+          find artifacts -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec cp {} release-assets/ \;
+          ls -lh release-assets/
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          {
+            echo "## Release ${GITHUB_REF#refs/tags/}"
+            echo ""
+            echo "### Downloads"
+            echo ""
+            echo "Choose the appropriate package for your platform:"
+            echo ""
+            echo "- **Windows (x64)**: \`pg_protoexport-win-x64.zip\`"
+            echo "- **macOS (Intel)**: \`pg_protoexport-osx-x64.tar.gz\`"
+            echo "- **macOS (Apple Silicon)**: \`pg_protoexport-osx-arm64.tar.gz\`"
+            echo "- **Linux (x64)**: \`pg_protoexport-linux-x64.tar.gz\`"
+            echo ""
+            echo "### Contents"
+            echo ""
+            echo "Each archive contains the CLI tool \`pg_protoexport\` (or \`pg_protoexport.exe\` on Windows)."
+          } > release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release-assets/*
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
