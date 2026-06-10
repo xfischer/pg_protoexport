@@ -1,0 +1,3 @@
+# Default owner for everything in the repo.
+# Review is automatically requested from these owners on every pull request.
+*       @xfischer
