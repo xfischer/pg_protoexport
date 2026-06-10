@@ -259,14 +259,14 @@ dotnet build pg_protoexport.slnx
 
 pg_protoexport is made of a core parsing service and pluggable exporters:
 
-- **PcapService** (`pg_protoexport.core`)
+- **PcapService** (`pg_protoexport.capture`, implements `IPcapService` defined in `pg_protoexport.core`)
 
   **Responsible** for reading capture files and transforming them into `IEnumerable<PostgresPacket>`.
   
   Each `PostgresPacket` contains messages sent/received under the `Messages` property.  
   Each message is derived from `PostgresMessageBase` class and is a full blown message class reflecting the message contents according to the [PostgreSQL message formats documentation](https://www.postgresql.org/docs/current/protocol-message-formats.html).
 
-- **LiveCaptureSession** (`pg_protoexport.core`)
+- **LiveCaptureSession** (`pg_protoexport.capture`)
 
   **Responsible** for live packet capture: writes a `.pcapng` from a NIC for the duration of a workload. Returned by `LiveCaptureSession.StartAsync(LiveCaptureOptions, ...)` as an `IAsyncDisposable` — disposal stops the capture and flushes the file. `PcapDevicePicker` resolves the NIC from the host (loopback / routing interface / explicit override). The DI seam is `ILiveCaptureSessionFactory`, registered by `AddLiveCapture()`.
 
