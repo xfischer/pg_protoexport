@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\pg_protoexport.core\pg_protoexport.core.csproj" />
+    <ProjectReference Include="..\pg_protoexport.capture\pg_protoexport.capture.csproj" />
     <ProjectReference Include="..\pg_protoexport.cli.abstractions\pg_protoexport.cli.abstractions.csproj" />
     <ProjectReference Include="..\pg_protoexport.export.ascii\pg_protoexport.export.ascii.csproj" />
     <ProjectReference Include="..\pg_protoexport.export.html\pg_protoexport.export.html.csproj" />
