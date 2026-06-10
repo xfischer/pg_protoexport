@@ -1,5 +1,10 @@
 # pg_protoexport
 
+[![.NET](https://github.com/xfischer/pg_protoexport/actions/workflows/dotnet.yml/badge.svg)](https://github.com/xfischer/pg_protoexport/actions/workflows/dotnet.yml)
+[![NuGet](https://img.shields.io/nuget/v/pg_protoexport.svg)](https://www.nuget.org/packages/pg_protoexport/)
+[![NuGet downloads](https://img.shields.io/nuget/dt/pg_protoexport.svg)](https://www.nuget.org/packages/pg_protoexport/)
+[![License: PostgreSQL](https://img.shields.io/badge/License-PostgreSQL-blue.svg)](LICENSE)
+
 [PostgreSQL wire protocol](https://www.postgresql.org/docs/current/protocol.html) Packet documentation generator from network capture files. Works on Mac, Linux and Windows.
 
 It can also **record its own captures live**: a built-in `capture` command writes a `.pcapng` from a network interface for the duration of a workload, so you no longer need to start `tcpdump`/Wireshark by hand.
@@ -16,6 +21,19 @@ It can also **record its own captures live**: a built-in `capture` command write
 ## Examples
 
 Example capture outputs can be found in the [docs](/docs/examples/exports/extendedQuery/) page.
+
+## Install
+
+Install the CLI as a global .NET tool (requires the .NET 10 SDK/runtime):
+
+```batch
+dotnet tool install --global pg_protoexport
+```
+
+Or download a self-contained binary for your platform from the
+[Releases](https://github.com/xfischer/pg_protoexport/releases) page (no .NET required).
+
+> Reading or recording captures needs a pcap library at runtime: Npcap on Windows, libpcap on Linux/macOS. See [Live capture](#live-capture) for details.
 
 ## How to use it
 
