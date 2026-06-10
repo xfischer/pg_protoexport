@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Core/">
+    <Project Path="pg_protoexport.capture/pg_protoexport.capture.csproj" />
     <Project Path="pg_protoexport.cli.abstractions/pg_protoexport.cli.abstractions.csproj" />
     <Project Path="pg_protoexport.core/pg_protoexport.core.csproj" />
   </Folder>
