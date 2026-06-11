@@ -14,7 +14,7 @@ public class GenerationState(bool standalone, bool multiple = false)
 
     /// <summary>
     /// When processing a DataRow message, this property will contain the number of rows previously processed.
-    /// This is used to add a 'skippedwords' bytefield. Maximum rows before a skipped rows is triggered can be set in <see cref="GenerationOptions.MaxDataRows"/>
+    /// This is used to add a 'skippedwords' bytefield. Maximum rows before a skipped rows is triggered can be set in <see cref="PcapToLatexOptions.MaxDataRows"/>
     /// </summary>
     public int ConsecutiveDataRows { get; set; } = 0;
 
