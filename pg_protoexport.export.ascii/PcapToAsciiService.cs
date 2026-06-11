@@ -25,6 +25,12 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
         return new PcapToAsciiService(log, Options.Create(options));
     }
 
+    /// <summary>Field-box layout: one row of boxes per message (the default mode).</summary>
+    public const string ModeFields = "fields";
+
+    /// <summary>Two-lifeline ASCII sequence diagram, one arrow per packet.</summary>
+    public const string ModeSequenceDiagram = "sequenceDiagram";
+
     public string Name => "ascii";
     public string DefaultExtension => ".txt";
 
@@ -33,7 +39,31 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
         var opts = options as AsciiExportOptions ?? AsciiExportOptions.Default;
         int maxLineWidth = ClampMaxLineWidth(opts.MaxLineWidth ?? _options.DefaultMaxLineWidth);
         int maxDataRows = opts.MaxDataRows ?? _options.MaxDataRows;
-        PcapToAscii(packets, outputPath, maxLineWidth, maxDataRows);
+
+        // mode == null falls through to the field-box layout, keeping callers that omit the mode safe.
+        void Render(TextWriter w)
+        {
+            if (mode == ModeSequenceDiagram)
+                AsciiArtRenderer.RenderSequenceDiagram(w, packets, maxLineWidth);
+            else
+                WriteFieldBoxes(w, packets, maxLineWidth, maxDataRows);
+        }
+
+        if (opts.ToConsole)
+        {
+            // Buffer the whole render and flush once at the very end, so it lands after every log
+            // line. Write via Console.Out (NOT AnsiConsole) — headers like "[F->B]" would otherwise
+            // be parsed as Spectre markup.
+            var buffer = new StringWriter();
+            Render(buffer);
+            Console.Out.Write(buffer.ToString());
+        }
+        else
+        {
+            using var writer = new StreamWriter(outputPath, false);
+            Render(writer);
+        }
+
         return new EmptyExportResult();
     }
 
@@ -45,8 +75,22 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
 
     public void PcapToAscii(IEnumerable<PostgresPacket> packets, string outputFile, int maxLineWidth, int maxDataRows)
     {
-        maxLineWidth = ClampMaxLineWidth(maxLineWidth);
         using var writer = new StreamWriter(outputFile, false);
+        WriteFieldBoxes(writer, packets, ClampMaxLineWidth(maxLineWidth), maxDataRows);
+    }
+
+    public void PcapToSequenceDiagram(IEnumerable<PostgresPacket> packets, string outputFile)
+    {
+        using var writer = new StreamWriter(outputFile, false);
+        PcapToSequenceDiagram(packets, writer);
+    }
+
+    public void PcapToSequenceDiagram(IEnumerable<PostgresPacket> packets, TextWriter writer)
+        => AsciiArtRenderer.RenderSequenceDiagram(writer, packets, ClampMaxLineWidth(_options.DefaultMaxLineWidth));
+
+    private static void WriteFieldBoxes(TextWriter writer, IEnumerable<PostgresPacket> packets, int maxLineWidth, int maxDataRows)
+    {
+        maxLineWidth = ClampMaxLineWidth(maxLineWidth);
 
         // Render at most maxDataRows from each run of consecutive DataRow messages, then collapse
         // the remainder into one marker. dataRowRun is the length of the current run; the number

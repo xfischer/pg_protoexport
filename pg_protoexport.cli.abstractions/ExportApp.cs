@@ -20,7 +20,8 @@ public class ExportApp(
 
         var displayName = mode is null ? exporter.Name : $"{exporter.Name} {mode}";
         logger.LogInformation("PCAP to {Name}. Processing file '{File}'...", displayName, Path.GetFileName(inputFile));
-        logger.LogInformation("Output path {OutputPath}", outputPath);
+        if (!string.IsNullOrEmpty(outputPath))
+            logger.LogInformation("Output path {OutputPath}", outputPath);
 
         ushort resolvedPort;
         if (port.HasValue)
@@ -70,7 +71,8 @@ public class ExportApp(
         try
         {
             result = exporter.Export(packets, outputPath, mode, options);
-            logger.LogInformation("File written to {OutputPath}", outputPath);
+            if (!string.IsNullOrEmpty(outputPath))
+                logger.LogInformation("File written to {OutputPath}", outputPath);
             return result;
         }
         catch (Exception ex)

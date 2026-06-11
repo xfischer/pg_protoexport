@@ -33,9 +33,16 @@ dotnet run --project pg_protoexport -- mermaid <file.pcapng> packet <output.md>
 dotnet run --project pg_protoexport -- plantuml <file.pcapng> sequenceDiagram <output.md>
 dotnet run --project pg_protoexport -- plantuml <file.pcapng> packet <output.md>
 dotnet run --project pg_protoexport -- html <file.pcapng> <output.html>
+# ascii is a two-mode branch (capture_file comes before the mode keyword, like mermaid/plantuml).
+# --console / --max-width are BRANCH options (declared on AsciiBranchSettings so they show in
+# `ascii --help`), so they must be placed BEFORE the mode keyword, not after it.
+dotnet run --project pg_protoexport -- ascii <file.pcapng> fields <output.txt>
+dotnet run --project pg_protoexport -- ascii <file.pcapng> sequenceDiagram <output.txt>
+dotnet run --project pg_protoexport -- ascii <file.pcapng> --console sequenceDiagram   # write to stdout, no file
+dotnet run --project pg_protoexport -- ascii <file.pcapng> --console --max-width 120 fields
 
 # Batch export: run every exporter + variant over every .pcapng in a directory.
-# Produces <output-dir>/<input-stem>/capture.{tex,pqtrace.txt,ascii.txt,mermaid.{seq,pkt}.md,
+# Produces <output-dir>/<input-stem>/capture.{tex,pqtrace.txt,ascii.txt,ascii.seq.txt,mermaid.{seq,pkt}.md,
 # plantuml.{seq,pkt}.md,html} + capture_assets/ per input.
 dotnet run --project pg_protoexport -- batchexport <input-dir>
 dotnet run --project pg_protoexport -- batchexport docs/examples/captures docs/examples/exports
@@ -64,7 +71,7 @@ The solution has eleven projects plus two samples:
 - **pg_protoexport.export.mermaid** - Mermaid exporter with `IPcapToMermaidService`. Two modes: sequence diagrams and packet diagrams.
 - **pg_protoexport.export.plantuml** - PlantUML exporter with `IPcapToPlantUmlService`. Same two modes as Mermaid; packet mode renders messages as `@startjson` trees because PlantUML has no native packet diagram type.
 - **pg_protoexport.export.html** - HTML "guided reading" report exporter with `IPcapToHtmlService`. Depends on the Mermaid exporter (embeds its `sequenceDiagram` output).
-- **pg_protoexport.export.ascii** - ASCII-art exporter with `IPcapToAsciiService`; renders each parsed field as a labelled, content-sized box. Forces `PcapPostgresOptions.RecordFieldMetadata` on (like HTML) because the renderer needs per-field offsets/lengths.
+- **pg_protoexport.export.ascii** - ASCII exporter with `IPcapToAsciiService`. Two modes (a multi-mode branch like mermaid/plantuml): `fields` renders each parsed field as a labelled, content-sized box (forces `PcapPostgresOptions.RecordFieldMetadata` on, like HTML, because the renderer needs per-field offsets/lengths), and `sequenceDiagram` renders a two-lifeline (Client/Server) ASCII conversation with one arrow per packet (reusing `PostgresPacketSequence.BuildSequenceLines` + `SessionEndpoints`). A `--console`/`-c` flag writes either mode to stdout instead of a file: the render is buffered and flushed in one shot after all log lines, and `ExportApp` skips its "Output path"/"File written" logs when the output path is empty so the diagram is the last thing on stdout. `--console` and `--max-width` are declared on `AsciiBranchSettings` (the branch settings type) rather than the leaf `AsciiSettings`, so they surface in `ascii --help`'s OPTIONS section; because Spectre parses branch options before the sub-command, they must be placed **before** the mode keyword (`ascii file.pcapng --console sequenceDiagram`).
 - **pg_protoexport** - CLI executable using Spectre.Console.Cli. Generic host: registers the host-level `capture` and `batchexport` commands, then discovers every `IExporterCliModule` via DI and lets each register its own command(s). Each exporter project owns its CLI command + settings, so adding an exporter requires no edits here beyond one `Add{Format}Exporter()` composition line. Every exporter project carries a `Spectre.Console.Cli` dependency as a result.
 - **pg_protoexport.tests** - xUnit v2 tests with NSubstitute for mocking and Spectre.Console.Testing.
 - **BasicSample** - Minimal console app showing how to use core + exporters without DI. Single verb `read`: parses a bundled `extendedQuery.pcapng` and renders LaTeX/Mermaid/PlantUML output via the legacy `MarkdownMermaidGenerator` / `MarkdownPlantUmlGenerator` helpers. No live database, no Npgsql.
@@ -97,7 +104,7 @@ The solution has eleven projects plus two samples:
 
 3. **CLI dispatcher (`ExportApp` / `IExportApp` in `pg_protoexport.cli.abstractions`)** - Thin coordinator around `IPcapService`, `IPcapPortDetector`, and `IEnumerable<IPcapExporter>`. Lives in the shared abstractions project (not the CLI exe) so exporter command classes can depend on it. Two entry points: `RunExport(name, inputFile, outputPath, port, mode?, options?)` parses the pcapng (auto-detecting the port via `IPcapPortDetector` when `port` is null) and dispatches to the named exporter; `RunExportPrebuilt(packets, name, outputPath, mode?, options?)` skips parsing and is used by `BatchExportCommand` so one parsed capture can fan out to all variants without paying parse cost N times. Both go through a shared `RunExportInternal` that runs the exporter inside a try/catch/finally and logs packet/message counters from `IExportResult`. The CLI exe registers it as `AddSingleton<IExportApp, ExportApp>()`.
 
-4. **`batchexport` command** - Top-level Spectre command in [pg_protoexport/Cli/Commands/BatchExportCommand.cs](pg_protoexport/Cli/Commands/BatchExportCommand.cs) that walks `<input-dir>` for `.pcapng`/`.pcap` (recursive optional), parses each file once, then writes a per-input subfolder `<output-dir>/<stem>/` containing one output per exporter variant: `capture.tex` (latex standalone), `capture.pqtrace.txt`, `capture.ascii.txt`, `capture.mermaid.{seq,pkt}.md`, `capture.plantuml.{seq,pkt}.md`, `capture.html` (+ `capture_assets/`). The variant list is **not** declared in this command — it is aggregated at construction from every registered exporter's `IExporterCliModule.BatchVariants` (`modules.SelectMany(m => m.BatchVariants)`), so a new exporter's variants appear automatically. The port can be supplied via `--port`; if omitted, `IPcapPortDetector` infers it per file. Failures during parse or any single variant are caught, logged, and reported in the final `OK/Total` summary; one bad file does not abort the run, but the process exits non-zero if any file falls short.
+4. **`batchexport` command** - Top-level Spectre command in [pg_protoexport/Cli/Commands/BatchExportCommand.cs](pg_protoexport/Cli/Commands/BatchExportCommand.cs) that walks `<input-dir>` for `.pcapng`/`.pcap` (recursive optional), parses each file once, then writes a per-input subfolder `<output-dir>/<stem>/` containing one output per exporter variant: `capture.tex` (latex standalone), `capture.pqtrace.txt`, `capture.ascii.txt` (fields), `capture.ascii.seq.txt` (sequence diagram), `capture.mermaid.{seq,pkt}.md`, `capture.plantuml.{seq,pkt}.md`, `capture.html` (+ `capture_assets/`). The variant list is **not** declared in this command — it is aggregated at construction from every registered exporter's `IExporterCliModule.BatchVariants` (`modules.SelectMany(m => m.BatchVariants)`), so a new exporter's variants appear automatically. The port can be supplied via `--port`; if omitted, `IPcapPortDetector` infers it per file. Failures during parse or any single variant are caught, logged, and reported in the final `OK/Total` summary; one bad file does not abort the run, but the process exits non-zero if any file falls short.
 
 ### T4 templates
 
@@ -126,7 +133,7 @@ Everything for a new exporter lives in its own project; the `pg_protoexport` CLI
 4. Create an `AddFooExporter()` `IServiceCollection` extension that registers the service as both `IPcapToFooService` and `IPcapExporter`, plus `AddSingleton<IExporterCliModule, FooCliModule>()`.
 5. In the CLI's `Program.BuildServiceCollection`, add the one `.AddFooExporter()` line and a `ProjectReference` to the new project. Nothing else in the CLI changes — `ConfigurePgProtoExport` discovers the module and `BatchExportCommand` picks up its variants automatically.
 
-See `pg_protoexport.export.mermaid` (multi-mode branch) and `pg_protoexport.export.ascii` (single-mode with options) for the cleanest examples. BasicSample's `MarkdownMermaidGenerator` and `MarkdownPlantUmlGenerator` are pre-exporter sample helpers kept for the no-DI demo — they are not the canonical pattern.
+See `pg_protoexport.export.mermaid` and `pg_protoexport.export.ascii` (multi-mode branches) and `pg_protoexport.export.pqtrace` (single-mode) for the cleanest examples. BasicSample's `MarkdownMermaidGenerator` and `MarkdownPlantUmlGenerator` are pre-exporter sample helpers kept for the no-DI demo — they are not the canonical pattern.
 
 ### DI and factory patterns
 

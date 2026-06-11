@@ -116,13 +116,25 @@ directory containing `styles.css`, `app.js`, and a vendored `mermaid.min.js`. Op
 
 #### ASCII
 
-Generates a plain-text diagram where each parsed field is a labelled, content-sized box (with a `(N bytes)` annotation on multi-byte fields) — handy for pasting protocol layouts into terminals, code comments, or plain-text docs.
+Generates plain-text diagrams — handy for pasting protocol layouts into terminals, code comments, or plain-text docs. Two sub-commands are available:
+
+- **fields** — each parsed field is a labelled, content-sized box (with a `(N bytes)` annotation on multi-byte fields)
+- **sequenceDiagram** — a two-lifeline (Client / Server) conversation with one labelled arrow per packet, splitting at `ReadyForQuery` or `Terminate` boundaries
 
 ```batch
-pg_protoexport ascii <capture_file> [output_path] [--port N] [OPTIONS]
+pg_protoexport ascii <capture_file> [OPTIONS] fields [output_path]
+pg_protoexport ascii <capture_file> [OPTIONS] sequenceDiagram [output_path]
 
 OPTIONS:
+    -p, --port N        PostgreSQL port to filter on. If omitted, auto-detected
         --max-width     Maximum characters per output line before cells wrap to a new row. Default 160. Range: [40, 400]
+    -c, --console       Write the output to the console (stdout) instead of a file; the output path becomes optional
+```
+
+`--port`, `--max-width`, and `--console` are options on the `ascii` branch, so they appear in `ascii --help` and **must be placed before the mode keyword** (`fields` / `sequenceDiagram`). With `--console`, the diagram is buffered and flushed once after all log lines, so logs never interleave with the output:
+
+```batch
+pg_protoexport ascii capture.pcapng --console sequenceDiagram
 ```
 
 ### Arguments
@@ -185,7 +197,7 @@ Under the hood, `PagilaTrafficGenerator.RunAsync` accepts an optional `Func<int,
 
 ### Batch export — every exporter, every variant, over a directory of captures
 
-The `batchexport` command walks a directory of `.pcapng` / `.pcap` files and runs every exporter the tool exposes — including the multi-mode ones (mermaid sequence + packet, plantuml sequence + packet) — over each input. Outputs land in a per-input subfolder under the chosen output directory.
+The `batchexport` command walks a directory of `.pcapng` / `.pcap` files and runs every exporter the tool exposes — including the multi-mode ones (ascii fields + sequence, mermaid sequence + packet, plantuml sequence + packet) — over each input. Outputs land in a per-input subfolder under the chosen output directory.
 
 ```batch
 dotnet run --project pg_protoexport -- batchexport docs/examples/captures docs/examples/exports
@@ -200,7 +212,8 @@ Produces, for each input `pagila-01-simple-query-single-statement.pcapng`:
 docs/examples/exports/pagila-01-simple-query-single-statement/
 ├── capture.tex                 # latex standalone
 ├── capture.pqtrace.txt         # PQTrace-style tab-separated
-├── capture.ascii.txt           # ASCII-art labelled boxes
+├── capture.ascii.txt           # ASCII-art labelled boxes (fields)
+├── capture.ascii.seq.txt       # ASCII sequence diagram
 ├── capture.mermaid.seq.md      # mermaid sequenceDiagram
 ├── capture.mermaid.pkt.md      # mermaid packet
 ├── capture.plantuml.seq.md     # plantuml sequence (@startuml)

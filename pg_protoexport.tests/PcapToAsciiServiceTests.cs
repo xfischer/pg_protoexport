@@ -252,4 +252,150 @@ public class PcapToAsciiServiceTests : IDisposable
         Assert.Contains("3 DataRow messages skipped", content);
         Assert.Contains("CommandComplete", content);
     }
+
+    [Fact]
+    public void SequenceDiagram_RendersTwoLifelinesAndArrows()
+    {
+        var packets = ParseExtendedQuery();
+        var service = PcapToAsciiService.Create();
+        var outputFile = Path.Combine(_tempDir, "seq.txt");
+
+        service.PcapToSequenceDiagram(packets, outputFile);
+        var content = File.ReadAllText(outputFile);
+
+        // Two lifelines (client left, server right) with directional arrows and merged labels.
+        Assert.Contains("Client (", content);
+        Assert.Contains("Server (", content);
+        Assert.Contains("-->", content); // a frontend (C->S) arrow
+        Assert.Contains("<--", content); // a backend (S->C) arrow
+        Assert.Contains("Parse", content);
+    }
+
+    [Fact]
+    public void SequenceDiagram_EmptyInput_WritesNoMessagesMarker()
+    {
+        var sw = new StringWriter();
+        AsciiArtRenderer.RenderSequenceDiagram(sw, Array.Empty<PostgresPacket>(), maxLineWidth: 160);
+
+        Assert.Contains("(no messages)", sw.ToString());
+    }
+
+    [Fact]
+    public void Export_SequenceDiagramMode_ToConsole_WritesToStdout_NotFile()
+    {
+        var packets = ParseExtendedQuery();
+        var service = (IPcapExporter)PcapToAsciiService.Create();
+        var outputFile = Path.Combine(_tempDir, "should-not-exist.txt");
+
+        var original = Console.Out;
+        var captured = new StringWriter();
+        Console.SetOut(captured);
+        try
+        {
+            service.Export(packets, outputFile, PcapToAsciiService.ModeSequenceDiagram,
+                new AsciiExportOptions(ToConsole: true));
+        }
+        finally
+        {
+            Console.SetOut(original);
+        }
+
+        var output = captured.ToString();
+        Assert.Contains("Client (", output);
+        Assert.Contains("Server (", output);
+        Assert.False(File.Exists(outputFile), "Console mode must not create an output file.");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(PcapToAsciiService.ModeFields)]
+    public void Export_FieldsMode_AndNullMode_ProduceBoxLayout(string? mode)
+    {
+        var packets = ParseExtendedQuery();
+        var service = (IPcapExporter)PcapToAsciiService.Create();
+        var outputFile = Path.Combine(_tempDir, $"fields_{mode ?? "null"}.txt");
+
+        service.Export(packets, outputFile, mode, AsciiExportOptions.Default);
+        var content = File.ReadAllText(outputFile);
+
+        // Box layout: direction-tagged headers and labelled cells, no lifelines.
+        Assert.Matches(@"\[(F->B|B->F)\] \w+ \(\d+ bytes\)", content);
+        Assert.Contains("query", content);
+        Assert.DoesNotContain("Client (", content);
+    }
+
+    private static PostgresPacket FrontEndPacket(params PostgresMessageBase[] msgs) =>
+        new() { Messages = msgs.ToList(), IsFrontEnd = true };
+
+    private static PostgresPacket BackEndPacket(params PostgresMessageBase[] msgs) =>
+        new() { Messages = msgs.ToList() };
+
+    private static ParseMessage Parse() => new(new('P', "Parse", IsFrontEnd: true), 4);
+    private static BindMessage Bind() => new(new('B', "Bind", IsFrontEnd: true), 4);
+    private static DescribeMessage Describe() => new(new('D', "Describe", IsFrontEnd: true), 4);
+    private static ExecuteMessage Execute() => new(new('E', "Execute", IsFrontEnd: true), 4);
+    private static SyncMessage Sync() => new(new('S', "Sync", IsFrontEnd: true), 4);
+    private static ParseCompleteMessage ParseComplete() => new(new('1', "ParseComplete", IsFrontEnd: false), 4);
+    private static BindCompleteMessage BindComplete() => new(new('2', "BindComplete", IsFrontEnd: false), 4);
+    private static RowDescriptionMessage RowDescription() => new(new('T', "RowDescription", IsFrontEnd: false), 4);
+    private static DataRowMessage DataRow() => new(new('D', "DataRow", IsFrontEnd: false), 4) { FieldCount = 0 };
+    private static CommandCompleteMessage CommandComplete() => new(new('C', "CommandComplete", IsFrontEnd: false), 4);
+
+    [Fact]
+    public void SequenceLines_Frontend_SplitsAtExecuteUnlessFollowedBySync()
+    {
+        // A 3-statement batch: ...Execute / ...Execute / ...Execute / Sync (one packet).
+        var packet = FrontEndPacket(
+            Parse(), Bind(), Describe(), Execute(),
+            Parse(), Bind(), Describe(), Execute(),
+            Parse(), Bind(), Describe(), Execute(), Sync());
+
+        var lines = AsciiArtRenderer.BuildAsciiSequenceLines(packet);
+
+        Assert.Equal(3, lines.Count);
+        Assert.Equal("Parse / Bind / Describe / Execute", lines[0].Label);
+        Assert.Equal("Parse / Bind / Describe / Execute", lines[1].Label);
+        // The trailing Execute is immediately followed by Sync, so it stays on the same arrow.
+        Assert.Equal("Parse / Bind / Describe / Execute / Sync", lines[2].Label);
+        Assert.All(lines, l => Assert.True(l.FrontEnd));
+    }
+
+    [Fact]
+    public void SequenceLines_Backend_SplitsAtEachCommandComplete()
+    {
+        var packet = BackEndPacket(
+            ParseComplete(), BindComplete(), RowDescription(), DataRow(), CommandComplete(),
+            ParseComplete(), BindComplete(), RowDescription(), DataRow(), CommandComplete());
+
+        var lines = AsciiArtRenderer.BuildAsciiSequenceLines(packet);
+
+        Assert.Equal(2, lines.Count);
+        Assert.All(lines, l => Assert.Equal("ParseComplete / BindComplete / RowDescription / DataRow / CommandComplete", l.Label));
+        Assert.All(lines, l => Assert.False(l.FrontEnd));
+    }
+
+    [Fact]
+    public void SequenceLines_Backend_CollapsesThreeOrMoreDataRows_ButKeepsOneOrTwoIndividual()
+    {
+        var fourRows = BackEndPacket(RowDescription(), DataRow(), DataRow(), DataRow(), DataRow(), CommandComplete());
+        var twoRows = BackEndPacket(RowDescription(), DataRow(), DataRow(), CommandComplete());
+
+        var fourLine = Assert.Single(AsciiArtRenderer.BuildAsciiSequenceLines(fourRows)).Label;
+        var twoLine = Assert.Single(AsciiArtRenderer.BuildAsciiSequenceLines(twoRows)).Label;
+
+        Assert.Equal("RowDescription / DataRow (x4) / CommandComplete", fourLine);
+        Assert.Equal("RowDescription / DataRow / DataRow / CommandComplete", twoLine);
+    }
+
+    [Fact]
+    public void CliModule_ExposesTwoBatchVariants_WithDistinctFileNames()
+    {
+        var variants = new AsciiCliModule().BatchVariants.ToList();
+
+        Assert.Equal(2, variants.Count);
+        Assert.All(variants, v => Assert.Equal("ascii", v.Exporter));
+        Assert.Contains(variants, v => v.Mode == PcapToAsciiService.ModeFields && v.OutputFileName == "capture.ascii.txt");
+        Assert.Contains(variants, v => v.Mode == PcapToAsciiService.ModeSequenceDiagram && v.OutputFileName == "capture.ascii.seq.txt");
+        Assert.Equal(variants.Select(v => v.OutputFileName).Distinct().Count(), variants.Count);
+    }
 }
