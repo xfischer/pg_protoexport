@@ -125,8 +125,8 @@ public sealed class PcapBinaryReader(BinaryReader reader, Encoding encoding) : I
     private void AddField(ParsedField field) => _recordedFields?.Add(field);
 
     /// <summary>
-    /// Scope returned by <see cref="BeginField"/>. <see cref="Read"/> methods auto-populate
-    /// the display value; callers can override it via <see cref="SetValue"/> before disposal
+    /// Scope returned by <see cref="BeginField"/>. The <c>Read*</c> methods auto-populate
+    /// the display value; callers can override it via <see cref="FieldScope.SetValue"/> before disposal
     /// when the bytes should be displayed differently (e.g. text instead of hex).
     /// </summary>
     public sealed class FieldScope : IDisposable
