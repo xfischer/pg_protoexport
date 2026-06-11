@@ -1,6 +1,5 @@
 namespace pg_protoexport;
 
-
 public abstract class PostgresMessageBase(PostgresMessageDescriptor pgMessage, int length)
 {
     public char Code => pgMessage.Code;

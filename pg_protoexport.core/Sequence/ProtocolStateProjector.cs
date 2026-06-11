@@ -28,8 +28,11 @@ public static class ProtocolStateProjector
                 return s with { ConnState = ConnectionState.StartupSent };
 
             case AuthenticationGenericMessage auth:
+                // AuthenticationOK signals authentication is complete (the server next sends
+                // ParameterStatus/BackendKeyData before ReadyForQuery); every other Authentication*
+                // message is an in-progress challenge.
                 return auth.AuthenticationName == "AuthenticationOK"
-                    ? s with { ConnState = ConnectionState.Authenticating }
+                    ? s with { ConnState = ConnectionState.Authenticated }
                     : s with { ConnState = ConnectionState.Authenticating };
 
             case ReadyForQueryMessage rfq:

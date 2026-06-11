@@ -1,6 +1,5 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace pg_protoexport;
 
@@ -11,11 +10,7 @@ public class PcapToMermaidService(ILogger<PcapToMermaidService> logger) : IPcapT
 
     public static IPcapToMermaidService Create(ILoggerFactory? loggerFactory = null)
     {
-        var log = loggerFactory == null
-            ? NullLogger<PcapToMermaidService>.Instance
-            : loggerFactory.CreateLogger<PcapToMermaidService>();
-
-        return new PcapToMermaidService(log);
+        return new PcapToMermaidService(loggerFactory.CreateLoggerOrNull<PcapToMermaidService>());
     }
 
     public string Name => "mermaid";

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace pg_protoexport;
@@ -18,11 +17,7 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
     public static IPcapToAsciiService Create(ILoggerFactory? loggerFactory = null, PcapToAsciiOptions? options = null)
     {
         options ??= new PcapToAsciiOptions();
-        var log = loggerFactory == null
-            ? NullLogger<PcapToAsciiService>.Instance
-            : loggerFactory.CreateLogger<PcapToAsciiService>();
-
-        return new PcapToAsciiService(log, Options.Create(options));
+        return new PcapToAsciiService(loggerFactory.CreateLoggerOrNull<PcapToAsciiService>(), Options.Create(options));
     }
 
     /// <summary>Field-box layout: one row of boxes per message (the default mode).</summary>

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Text;
 using pg_protoexport.Templates;
@@ -27,11 +26,7 @@ public sealed class PcapToLatexService(ILogger<PcapToLatexService> logger, IOpti
     {
         options ??= new PcapToLatexOptions();
 
-        var logger = loggerFactory == null ?
-                        NullLogger<PcapToLatexService>.Instance
-                        : loggerFactory.CreateLogger<PcapToLatexService>();
-
-        return new PcapToLatexService(logger, Options.Create(options));
+        return new PcapToLatexService(loggerFactory.CreateLoggerOrNull<PcapToLatexService>(), Options.Create(options));
     }
 
     private PcapToLatexOptions LatexOptions { get; init; } = pcapPostgresOptions.Value;

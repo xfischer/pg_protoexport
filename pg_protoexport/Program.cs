@@ -75,7 +75,6 @@ public static class Program
         foreach (var module in DiscoverCliModules(services))
             module.Register(config);
 
-        //config.PropagateExceptions();
 #if DEBUG
         config.ValidateExamples();
 #endif

@@ -75,8 +75,12 @@ public class ExportApp(
                 logger.LogInformation("File written to {OutputPath}", outputPath);
             return result;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or pg_protoexportException)
         {
+            // Recoverable I/O or domain faults are logged and degraded: any messages parsed before
+            // the fault may already be written to the output file. Programmer errors (bad mode,
+            // null refs, etc.) and cancellation deliberately propagate so they are not masked —
+            // BatchExportCommand and the top-level host handler turn them into a non-zero exit.
             logger.LogError(ex, "An error has occurred: {Message}. Messages may still have been processed and written to output file.", ex.Message);
             return result;
         }
