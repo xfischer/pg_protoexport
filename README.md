@@ -46,6 +46,17 @@ pg_protoexport <format> <capture_file> [output_path] [--port N] [OPTIONS]
 > Run `pg_protoexport --help` to get full usage and examples
 >
 > Run `pg_protoexport <command> --help` to get help for a given command
+>
+> Run `pg_protoexport version` (or `--version`) to print the version and runtime info
+
+### Guided tour
+
+New to the tool? Run the interactive tutorial — it walks through every command (starting with `ascii`), shows the exact line to type, and (in an interactive terminal) runs each against a bundled sample capture:
+
+```batch
+pg_protoexport demo
+pg_protoexport demo --no-run   # just print the tour, run nothing
+```
 
 ### Formats
 

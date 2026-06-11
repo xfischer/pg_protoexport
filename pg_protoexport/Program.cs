@@ -28,6 +28,7 @@ public static class Program
 
     public static IServiceCollection BuildServiceCollection(IAnsiConsole console) =>
         new ServiceCollection()
+            .AddSingleton(console)
             .AddLogging(configure => configure.AddSpectreConsole(console))
             .AddPcapService()
             .AddPcapPortDetector()
@@ -48,8 +49,19 @@ public static class Program
     public static void ConfigurePgProtoExport(IServiceCollection services, IConfigurator config)
     {
         config.SetApplicationName("pg_protoexport");
+        config.SetApplicationVersion(VersionInfo.Informational);
+
+        config.AddCommand<VersionCommand>("version")
+            .WithDescription("Print the pg_protoexport version and runtime info, then exit.")
+            .WithExample("version");
+
+        config.AddCommand<DemoCommand>("demo")
+            .WithDescription("Interactive guided tour: walks through every command (starting with ascii) and can run each against a bundled sample capture.")
+            .WithExample("demo")
+            .WithExample("demo", "--no-run");
 
         config.AddCommand<CaptureCommand>("capture")
+            .WithDescription("Record a .pcapng from a live NIC in-process (SharpPcap; no external tcpdump). Use --list-devices to enumerate adapters.")
             .WithExample("capture", "out.pcapng")
             .WithExample("capture", "out.pcapng", "--host", "localhost", "--port", "5432", "--duration", "30s")
             .WithExample("capture", "--list-devices");
