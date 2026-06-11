@@ -1,0 +1,7 @@
+Client (::1:57479)                                   Server (::1:5434)
+|                                                                    |
+|------------------------------ Query ------------------------------>|
+|                                                                    |
+|<-- CopyOutResponse / CopyData (x6) / CopyDone / CommandComplete ---|
+|                                                                    |
+|<------------------------- ReadyForQuery ---------------------------|

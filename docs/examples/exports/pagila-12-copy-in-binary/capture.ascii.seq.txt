@@ -1,0 +1,13 @@
+Client (::1:57399) Server (::1:5434)
+|                       |
+|-------- Query ------->|
+|                       |
+|<-- CopyInResponse ----|
+|                       |
+|------ CopyData ------>|
+|                       |
+|------ CopyDone ------>|
+|                       |
+|<-- CommandComplete ---|
+|                       |
+|<--- ReadyForQuery ----|

@@ -87,6 +87,7 @@ public class IPcapExporterTests : IDisposable
         var expected = new[]
         {
             ("ascii", "capture.ascii.txt"),
+            ("ascii", "capture.ascii.seq.txt"),
             ("html", "capture.html"),
             ("mermaid", "capture.mermaid.pkt.md"),
             ("mermaid", "capture.mermaid.seq.md"),
@@ -104,6 +105,8 @@ public class IPcapExporterTests : IDisposable
     [InlineData("pqtrace", null)]
     [InlineData("html", null)]
     [InlineData("ascii", null)]
+    [InlineData("ascii", "fields")]
+    [InlineData("ascii", "sequenceDiagram")]
     [InlineData("mermaid", "sequenceDiagram")]
     [InlineData("mermaid", "packet")]
     [InlineData("plantuml", "sequenceDiagram")]

@@ -1,0 +1,11 @@
+Client (::1:49331)                                                      Server (::1:5432)
+|                                                                                       |
+|---------------------- Parse / Bind / Describe / Execute / Sync ---------------------->|
+|                                                                                       |
+|<-- ParseComplete / BindComplete / RowDescription / DataRow (x10) / CommandComplete ---|
+|                                                                                       |
+|<----------------------------------- ReadyForQuery ------------------------------------|
+|                                                                                       |
+
+|                                                                                       |
+|-------------------------------------- Terminate ------------------------------------->|

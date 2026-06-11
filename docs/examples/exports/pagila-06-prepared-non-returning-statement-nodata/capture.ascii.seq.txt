@@ -1,0 +1,15 @@
+Client (::1:57479)                    Server (::1:5434)
+|                                                     |
+|-------------- Parse / Describe / Sync ------------->|
+|                                                     |
+|<-- ParseComplete / ParameterDescription / NoData ---|
+|                                                     |
+|<------------------ ReadyForQuery -------------------|
+|                                                     |
+
+|                                                     |
+|--------------- Bind / Execute / Sync -------------->|
+|                                                     |
+|<--------- BindComplete / CommandComplete -----------|
+|                                                     |
+|<------------------ ReadyForQuery -------------------|

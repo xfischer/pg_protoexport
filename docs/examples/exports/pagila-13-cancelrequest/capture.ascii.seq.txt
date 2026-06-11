@@ -1,0 +1,13 @@
+Client (::1:57479)                                    Server (::1:5434)
+|                                                                     |
+|------------- Parse / Bind / Describe / Execute / Sync ------------->|
+|                                                                     |
+|--------------------------- GSSENCRequest -------------------------->|
+|                                                                     |
+|<------------------------- GSSENCResponse ---------------------------|
+|                                                                     |
+|--------------------------- CancelRequest -------------------------->|
+|                                                                     |
+|<-- ParseComplete / BindComplete / RowDescription / ErrorResponse ---|
+|                                                                     |
+|<-------------------------- ReadyForQuery ---------------------------|
