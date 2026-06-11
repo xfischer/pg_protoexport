@@ -10,7 +10,7 @@ public static class PcapDevicePicker
 {
     internal static LibPcapLiveDevice Pick(string host, string? explicitDeviceName)
     {
-        var devices = LibPcapLiveDeviceList.Instance;
+        var devices = CaptureLibrary.GetLiveDevices();
         if (devices.Count == 0)
             throw new pg_protoexportException(
                 "No capture devices found. Install Npcap (Windows) or libpcap (Linux/Mac) and ensure the process has the required privileges.");
@@ -59,7 +59,7 @@ public static class PcapDevicePicker
 
     public static IReadOnlyList<PcapDeviceInfo> Enumerate()
     {
-        return LibPcapLiveDeviceList.Instance
+        return CaptureLibrary.GetLiveDevices()
             .Select(d => new PcapDeviceInfo(
                 d.Name,
                 d.Description ?? "",
