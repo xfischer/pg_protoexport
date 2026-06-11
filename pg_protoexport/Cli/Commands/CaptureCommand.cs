@@ -10,6 +10,19 @@ public class CaptureCommand(ILiveCaptureSessionFactory factory, ILogger<CaptureC
     protected override async Task<int> ExecuteAsync(
         CommandContext context, CaptureSettings settings, CancellationToken cancellation)
     {
+        try
+        {
+            return await RunAsync(settings, cancellation);
+        }
+        catch (CaptureLibraryMissingException ex)
+        {
+            RenderMissingLibrary(ex);
+            return 1;
+        }
+    }
+
+    private async Task<int> RunAsync(CaptureSettings settings, CancellationToken cancellation)
+    {
         if (settings.ListDevices)
         {
             foreach (var dev in PcapDevicePicker.Enumerate())
@@ -45,5 +58,12 @@ public class CaptureCommand(ILiveCaptureSessionFactory factory, ILogger<CaptureC
         }
 
         return 0;
+    }
+
+    private static void RenderMissingLibrary(CaptureLibraryMissingException ex)
+    {
+        AnsiConsole.MarkupLine("[bold red]Capture library not installed[/]");
+        AnsiConsole.MarkupLine(Markup.Escape(ex.Message));
+        AnsiConsole.MarkupLine($"Download: [link={Markup.Escape(ex.DownloadUrl)}]{Markup.Escape(ex.DownloadUrl)}[/]");
     }
 }
