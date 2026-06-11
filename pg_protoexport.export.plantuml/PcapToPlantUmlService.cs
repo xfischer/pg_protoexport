@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace pg_protoexport;
 
@@ -13,11 +12,7 @@ public class PcapToPlantUmlService(ILogger<PcapToPlantUmlService> logger) : IPca
 
     public static IPcapToPlantUmlService Create(ILoggerFactory? loggerFactory = null)
     {
-        var log = loggerFactory == null
-            ? NullLogger<PcapToPlantUmlService>.Instance
-            : loggerFactory.CreateLogger<PcapToPlantUmlService>();
-
-        return new PcapToPlantUmlService(log);
+        return new PcapToPlantUmlService(loggerFactory.CreateLoggerOrNull<PcapToPlantUmlService>());
     }
 
     public string Name => "plantuml";

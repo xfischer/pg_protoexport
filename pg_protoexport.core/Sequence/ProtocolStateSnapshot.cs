@@ -7,6 +7,7 @@ public enum ConnectionState
     Initial,
     StartupSent,
     Authenticating,
+    Authenticated,
     Ready,
     Terminated
 }

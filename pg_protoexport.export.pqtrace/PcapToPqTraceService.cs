@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace pg_protoexport;
 
@@ -9,11 +8,7 @@ public class PcapToPqTraceService(ILogger<PcapToPqTraceService> logger) : IPcapT
 
     public static IPcapToPqTraceService Create(ILoggerFactory? loggerFactory = null)
     {
-        var logger = loggerFactory == null
-            ? NullLogger<PcapToPqTraceService>.Instance
-            : loggerFactory.CreateLogger<PcapToPqTraceService>();
-
-        return new PcapToPqTraceService(logger);
+        return new PcapToPqTraceService(loggerFactory.CreateLoggerOrNull<PcapToPqTraceService>());
     }
 
     public string Name => "pqtrace";

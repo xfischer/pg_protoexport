@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SharpPcap;
 using SharpPcap.LibPcap;
@@ -13,10 +12,7 @@ public sealed class PcapService(ILogger<PcapService> logger, IOptions<PcapPostgr
     {
         options ??= new PcapPostgresOptions().AddDefaultPostgresMessages();
 
-        var logger = loggerFactory == null ?
-                        NullLogger<PcapService>.Instance
-                        : loggerFactory.CreateLogger<PcapService>();
-        return new PcapService(logger, Microsoft.Extensions.Options.Options.Create(options));
+        return new PcapService(loggerFactory.CreateLoggerOrNull<PcapService>(), Microsoft.Extensions.Options.Options.Create(options));
     }
 
     internal PcapPostgresOptions Options { get; init; } = pcapPostgresOptions.Value;
@@ -134,43 +130,17 @@ public sealed class PcapService(ILogger<PcapService> logger, IOptions<PcapPostgr
                     messageLength = info.Reader.ReadInt32();
             }
 
-            // Backend single-byte reply to a prior SSL/GSSENC probe on the same port.
-            // The single byte was already consumed above as `messageCode`.
-            if (!info.IsFrontEnd)
-            {
-                var probe = info.State.LastStartupProbe(info.ClientPort);
-                if (probe != StartupProbeKind.None)
-                {
-                    if (TryReadStartupProbeResponse(probe, messageCode, info.IsFrontEnd, out var replyMessage))
-                    {
-                        message = replyMessage;
-                        info.State.SetLastStartupProbe(info.ClientPort, StartupProbeKind.None);
-                        if (Options.RecordFieldMetadata)
-                        {
-                            message!.PayloadOffset = info.Reader.MessageStartOffset;
-                            message.OnWireLength = info.Reader.CurrentStreamOffset - info.Reader.MessageStartOffset;
-                            message.ParsedFields = info.Reader.EndMessage();
-                        }
-                        return true;
-                    }
-                    // The byte wasn't a valid probe response — capture lost the reply.
-                    // Clear the stuck flag and fall through to normal catalog dispatch.
-                    logger.LogWarning("Expected SSL/GSSENC probe response but saw code '{MessageCode}' — clearing probe state", messageCode);
-                    info.State.SetLastStartupProbe(info.ClientPort, StartupProbeKind.None);
-                }
-            }
+            // Backend single-byte reply to a prior SSL/GSSENC probe on the same port. When it
+            // matches we're done; otherwise the probe state is cleared and we fall through.
+            if (!info.IsFrontEnd && TryReadProbeResponse(info, messageCode, out message))
+                return true;
 
             var pgMessageRaw = Options.MessageCatalog.GetMessage(messageCode, info.IsFrontEnd);
             if (pgMessageRaw == null)
             {
                 logger.LogWarning("Unknown message with code: {MessageCode}", messageCode);
                 message = UnknownMessage.Read(new PostgresMessageDescriptor(messageCode, "Unknown", info.IsFrontEnd), info.Reader);
-                if (Options.RecordFieldMetadata)
-                {
-                    message.PayloadOffset = info.Reader.MessageStartOffset;
-                    message.OnWireLength = info.Reader.CurrentStreamOffset - info.Reader.MessageStartOffset;
-                    message.ParsedFields = info.Reader.EndMessage();
-                }
+                RecordMetadata(message, info.Reader);
                 return true;
             }
             var pgMessage = pgMessageRaw.Value with { IsFrontEnd = info.IsFrontEnd };
@@ -179,85 +149,13 @@ public sealed class PcapService(ILogger<PcapService> logger, IOptions<PcapPostgr
             if (!info.Reader.HasSufficientData(sizeof(int))) // code + length
                 return false;
 
-            message = pgMessage.Name switch
-            {
-                "Parse" => ParseMessage.Read(pgMessage, info.Reader),
-                "Bind" => BindMessage.Read(pgMessage, info.Reader),
-                "Describe" => DescribeMessage.Read(pgMessage, info.Reader),
-                "Execute" => ExecuteMessage.Read(pgMessage, info.Reader),
-                "Sync" => SyncMessage.Read(pgMessage, info.Reader),
-                "Query" => QueryMessage.Read(pgMessage, info.Reader),
-                "NoData" => NoDataMessage.Read(pgMessage, info.Reader),
-                "BindComplete" => BindCompleteMessage.Read(pgMessage, info.Reader),
-                "ParseComplete" => ParseCompleteMessage.Read(pgMessage, info.Reader),
-                "ParameterDescription" => ParameterDescriptionMessage.Read(pgMessage, info.Reader),
-                "RowDescription" => RowDescriptionMessage.Read(pgMessage, info.Reader),
-                "ReadyForQuery" => ReadyForQueryMessage.Read(pgMessage, info.Reader),
-                "DataRow" => DataRowMessage.Read(pgMessage, info.Reader, info.State.LastRowDescription),
-                "CommandComplete" => CommandCompleteMessage.Read(pgMessage, info.Reader),
-                "NoticeResponse" => NoticeResponseMessage.Read(pgMessage, info.Reader),
-                "Terminate" => TerminateMessage.Read(pgMessage, info.Reader),
-                "StartupMessage" => DispatchStartupPhaseFrontend(pgMessage, messageLength, info.Reader),
-                "AuthenticationRequest" => AuthenticationMessage.Read(pgMessage, info.Reader),
-                "Password" => info.State.GetLastAuthPacket(info.ClientPort)!.ReadResponseMessage(pgMessage, info.Reader),
-                "ParameterStatus" => ParameterStatusMessage.Read(pgMessage, info.Reader),
-                "BackendKeyData" => BackendKeyDataMessage.Read(pgMessage, info.Reader),
-                "ErrorResponse" => ErrorResponseMessage.Read(pgMessage, info.Reader),
-                "CopyInResponse" => CopyInResponseMessage.Read(pgMessage, info.Reader),
-                "CopyOutResponse" => CopyOutResponseMessage.Read(pgMessage, info.Reader),
-                "CopyBothResponse" => CopyBothResponseMessage.Read(pgMessage, info.Reader),
-                "CopyData" => CopyDataMessage.Read(pgMessage, info.Reader, info.State.BeginCopyDataChunk(info.ClientPort)),
-                "CopyDone" => CopyDoneMessage.Read(pgMessage, info.Reader),
-                "CopyFail" => CopyFailMessage.Read(pgMessage, info.Reader),
-                _ => Options.CustomMessageProcessor?.Invoke(pgMessage, info) ?? UnknownMessage.Read(new PostgresMessageDescriptor(messageCode, "Unknown", info.IsFrontEnd), info.Reader)
-                //throw new NotImplementedException($"Missing implementation for message '{pgMessage.Name}' (code: '{messageCode}') read."),
-            };
+            message = ReadKnownMessage(pgMessage, info, messageLength, messageCode);
 
-            if (message == null) // Cannot read, unsufficient buffer data available
+            if (message == null) // Cannot read, insufficient buffer data available
                 return false;
 
-            if (message is AuthenticationGenericMessage authMsg)
-                info.State.SetLastAuthPacket(info.ClientPort, authMsg);
-            if (message is RowDescriptionMessage rowDesc)
-                info.State.LastRowDescription = rowDesc;
-            if (message is BackendKeyDataMessage bkd)
-                info.State.RegisterCancelKey(bkd.ProcessId, bkd.SecretKey, info.ClientPort);
-            if (message is CancelRequestMessage cancel)
-                cancel.CorrelatedClientPort = info.State.LookupCancelTargetClientPort(cancel.ProcessId, (uint)cancel.SecretKey);
-
-            switch (message)
-            {
-                case CopyInResponseMessage cir:
-                    info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.In, cir.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
-                    break;
-                case CopyOutResponseMessage cor:
-                    info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.Out, cor.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
-                    break;
-                case CopyBothResponseMessage cbr:
-                    info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.Both, cbr.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
-                    break;
-                case CopyDoneMessage:
-                case CopyFailMessage:
-                case ErrorResponseMessage:
-                    info.State.ExitCopyStream(info.ClientPort);
-                    break;
-            }
-
-            var probeKind = message switch
-            {
-                SSLRequestMessage => StartupProbeKind.SSL,
-                GSSENCRequestMessage => StartupProbeKind.GSSENC,
-                _ => (StartupProbeKind?)null
-            };
-            if (probeKind.HasValue)
-                info.State.SetLastStartupProbe(info.ClientPort, probeKind.Value);
-
-            if (Options.RecordFieldMetadata)
-            {
-                message.PayloadOffset = info.Reader.MessageStartOffset;
-                message.OnWireLength = info.Reader.CurrentStreamOffset - info.Reader.MessageStartOffset;
-                message.ParsedFields = info.Reader.EndMessage();
-            }
+            ApplyPostDispatchState(message, info);
+            RecordMetadata(message, info.Reader);
 
             return true;
         }
@@ -266,6 +164,118 @@ public sealed class PcapService(ILogger<PcapService> logger, IOptions<PcapPostgr
             message = null;
             return false;
         }
+    }
+
+    // Backend single-byte reply to a prior SSL/GSSENC probe on the same port. The byte was
+    // already consumed as `messageCode`. Returns true (with `message` set) when it is a valid
+    // probe reply; otherwise clears the stuck probe state and returns false so the caller falls
+    // through to normal catalog dispatch.
+    private bool TryReadProbeResponse(ParserInfo info, char messageCode, out PostgresMessageBase? message)
+    {
+        message = null;
+        var probe = info.State.LastStartupProbe(info.ClientPort);
+        if (probe == StartupProbeKind.None)
+            return false;
+
+        info.State.SetLastStartupProbe(info.ClientPort, StartupProbeKind.None);
+        if (TryReadStartupProbeResponse(probe, messageCode, info.IsFrontEnd, out message))
+        {
+            RecordMetadata(message!, info.Reader);
+            return true;
+        }
+
+        // The byte wasn't a valid probe response — capture lost the reply.
+        logger.LogWarning("Expected SSL/GSSENC probe response but saw code '{MessageCode}' — clearing probe state", messageCode);
+        return false;
+    }
+
+    // Dispatch a known catalog message to its typed reader. External message types are handled
+    // through the documented CustomMessageProcessor hook (falling back to UnknownMessage), so this
+    // closed set is the only place that grows when a new built-in wire message is supported.
+    private PostgresMessageBase? ReadKnownMessage(PostgresMessageDescriptor pgMessage, ParserInfo info, int messageLength, char messageCode) =>
+        pgMessage.Name switch
+        {
+            "Parse" => ParseMessage.Read(pgMessage, info.Reader),
+            "Bind" => BindMessage.Read(pgMessage, info.Reader),
+            "Describe" => DescribeMessage.Read(pgMessage, info.Reader),
+            "Execute" => ExecuteMessage.Read(pgMessage, info.Reader),
+            "Sync" => SyncMessage.Read(pgMessage, info.Reader),
+            "Query" => QueryMessage.Read(pgMessage, info.Reader),
+            "NoData" => NoDataMessage.Read(pgMessage, info.Reader),
+            "BindComplete" => BindCompleteMessage.Read(pgMessage, info.Reader),
+            "ParseComplete" => ParseCompleteMessage.Read(pgMessage, info.Reader),
+            "ParameterDescription" => ParameterDescriptionMessage.Read(pgMessage, info.Reader),
+            "RowDescription" => RowDescriptionMessage.Read(pgMessage, info.Reader),
+            "ReadyForQuery" => ReadyForQueryMessage.Read(pgMessage, info.Reader),
+            "DataRow" => DataRowMessage.Read(pgMessage, info.Reader, info.State.LastRowDescription),
+            "CommandComplete" => CommandCompleteMessage.Read(pgMessage, info.Reader),
+            "NoticeResponse" => NoticeResponseMessage.Read(pgMessage, info.Reader),
+            "Terminate" => TerminateMessage.Read(pgMessage, info.Reader),
+            "StartupMessage" => DispatchStartupPhaseFrontend(pgMessage, messageLength, info.Reader),
+            "AuthenticationRequest" => AuthenticationMessage.Read(pgMessage, info.Reader),
+            "Password" => info.State.GetLastAuthPacket(info.ClientPort)!.ReadResponseMessage(pgMessage, info.Reader),
+            "ParameterStatus" => ParameterStatusMessage.Read(pgMessage, info.Reader),
+            "BackendKeyData" => BackendKeyDataMessage.Read(pgMessage, info.Reader),
+            "ErrorResponse" => ErrorResponseMessage.Read(pgMessage, info.Reader),
+            "CopyInResponse" => CopyInResponseMessage.Read(pgMessage, info.Reader),
+            "CopyOutResponse" => CopyOutResponseMessage.Read(pgMessage, info.Reader),
+            "CopyBothResponse" => CopyBothResponseMessage.Read(pgMessage, info.Reader),
+            "CopyData" => CopyDataMessage.Read(pgMessage, info.Reader, info.State.BeginCopyDataChunk(info.ClientPort)),
+            "CopyDone" => CopyDoneMessage.Read(pgMessage, info.Reader),
+            "CopyFail" => CopyFailMessage.Read(pgMessage, info.Reader),
+            _ => Options.CustomMessageProcessor?.Invoke(pgMessage, info) ?? UnknownMessage.Read(new PostgresMessageDescriptor(messageCode, "Unknown", info.IsFrontEnd), info.Reader)
+        };
+
+    // Update the per-connection parser state from an observed message: cache the last auth/row
+    // descriptor, correlate cancel keys, track COPY-stream entry/exit, and arm SSL/GSSENC probes.
+    private static void ApplyPostDispatchState(PostgresMessageBase message, ParserInfo info)
+    {
+        if (message is AuthenticationGenericMessage authMsg)
+            info.State.SetLastAuthPacket(info.ClientPort, authMsg);
+        if (message is RowDescriptionMessage rowDesc)
+            info.State.LastRowDescription = rowDesc;
+        if (message is BackendKeyDataMessage bkd)
+            info.State.RegisterCancelKey(bkd.ProcessId, bkd.SecretKey, info.ClientPort);
+        if (message is CancelRequestMessage cancel)
+            cancel.CorrelatedClientPort = info.State.LookupCancelTargetClientPort(cancel.ProcessId, (uint)cancel.SecretKey);
+
+        switch (message)
+        {
+            case CopyInResponseMessage cir:
+                info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.In, cir.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
+                break;
+            case CopyOutResponseMessage cor:
+                info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.Out, cor.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
+                break;
+            case CopyBothResponseMessage cbr:
+                info.State.EnterCopyStream(info.ClientPort, CopyStreamKind.Both, cbr.OverallFormat == 1 ? CopyStreamFormat.Binary : CopyStreamFormat.Text);
+                break;
+            case CopyDoneMessage:
+            case CopyFailMessage:
+            case ErrorResponseMessage:
+                info.State.ExitCopyStream(info.ClientPort);
+                break;
+        }
+
+        var probeKind = message switch
+        {
+            SSLRequestMessage => StartupProbeKind.SSL,
+            GSSENCRequestMessage => StartupProbeKind.GSSENC,
+            _ => (StartupProbeKind?)null
+        };
+        if (probeKind.HasValue)
+            info.State.SetLastStartupProbe(info.ClientPort, probeKind.Value);
+    }
+
+    // Stamp per-field offset/length metadata onto the message. No-op unless RecordFieldMetadata
+    // is enabled (off by default to keep exporters byte-identical and avoid per-field allocations).
+    private void RecordMetadata(PostgresMessageBase message, PcapBinaryReader reader)
+    {
+        if (!Options.RecordFieldMetadata)
+            return;
+        message.PayloadOffset = reader.MessageStartOffset;
+        message.OnWireLength = reader.CurrentStreamOffset - reader.MessageStartOffset;
+        message.ParsedFields = reader.EndMessage();
     }
 
     private PostgresMessageBase DispatchStartupPhaseFrontend(PostgresMessageDescriptor pgMessage, int messageLength, PcapBinaryReader reader)

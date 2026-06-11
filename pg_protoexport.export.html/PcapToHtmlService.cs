@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace pg_protoexport;
 
@@ -26,10 +25,7 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
 
     public static IPcapToHtmlService Create(ILoggerFactory? loggerFactory = null)
     {
-        var log = loggerFactory == null
-            ? NullLogger<PcapToHtmlService>.Instance
-            : loggerFactory.CreateLogger<PcapToHtmlService>();
-        return new PcapToHtmlService(log, PcapToMermaidService.Create(loggerFactory));
+        return new PcapToHtmlService(loggerFactory.CreateLoggerOrNull<PcapToHtmlService>(), PcapToMermaidService.Create(loggerFactory));
     }
 
     public void PcapToHtml(IEnumerable<PostgresPacket> packets, string outputFile)

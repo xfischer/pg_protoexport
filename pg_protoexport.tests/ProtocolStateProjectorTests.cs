@@ -80,4 +80,34 @@ public class ProtocolStateProjectorTests
         // assert
         Assert.Empty(snapshots);
     }
+
+    [Fact]
+    public void Project_AuthenticationOk_AdvancesToAuthenticated()
+    {
+        // arrange — a successful authentication completes the auth phase
+        var authOk = new AuthenticationGenericMessage(
+            new('R', "AuthenticationRequest", IsFrontEnd: false), length: 8, data: 0, commonName: "AuthenticationOK");
+        var packet = new PostgresPacket { Messages = { authOk } };
+
+        // act
+        var snapshot = ProtocolStateProjector.Project([packet]).Single().Snapshot;
+
+        // assert
+        Assert.Equal(ConnectionState.Authenticated, snapshot.ConnState);
+    }
+
+    [Fact]
+    public void Project_AuthenticationChallenge_StaysAuthenticating()
+    {
+        // arrange — any non-OK Authentication* message is an in-progress challenge
+        var challenge = new AuthenticationGenericMessage(
+            new('R', "AuthenticationRequest", IsFrontEnd: false), length: 12, data: 5, commonName: "AuthenticationMD5Password");
+        var packet = new PostgresPacket { Messages = { challenge } };
+
+        // act
+        var snapshot = ProtocolStateProjector.Project([packet]).Single().Snapshot;
+
+        // assert
+        Assert.Equal(ConnectionState.Authenticating, snapshot.ConnState);
+    }
 }
