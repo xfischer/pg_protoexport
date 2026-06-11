@@ -6,6 +6,7 @@ public sealed class LatexCliModule : IExporterCliModule
 {
     public void Register(IConfigurator config) =>
         config.AddCommand<ExportLatexCommand>("latex")
+            .WithDescription("Generate LaTeX bytefield diagrams (standalone documents or a paged article).")
             .WithExample("latex", "file.pcapng", "diagram.tex")
             .WithExample("latex", "file.pcapng", "diagram.tex", "--port", "5432", "--standalone", "--multiple");
 

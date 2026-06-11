@@ -7,6 +7,8 @@ public sealed class AsciiCliModule : IExporterCliModule
     public void Register(IConfigurator config) =>
         config.AddBranch<AsciiBranchSettings>("ascii", ascii =>
         {
+            ascii.SetDescription("ASCII diagrams — field boxes or a sequence diagram; supports --console.");
+
             // --console / --max-width are branch options, so they must precede the mode keyword
             // (e.g. `ascii file.pcapng --console sequenceDiagram`); the examples model that placement.
             ascii.AddCommand<ExportAsciiFieldsCommand>("fields")
