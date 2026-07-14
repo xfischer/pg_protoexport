@@ -4,12 +4,18 @@ namespace pg_protoexport;
 
 /// <summary>
 /// Renders a <see cref="PostgresMessageBase"/> as a sequence of labelled boxes — one box per
-/// parsed field, sized to fit its full name and value (plus an "(N bytes)" annotation when the
-/// field is more than one byte wide). Cells pack left-to-right; the renderer wraps to a new
-/// row when adding the next cell would exceed <c>maxLineWidth</c> characters.
+/// parsed field, sized to fit its full name and value. Cells pack left-to-right; the renderer
+/// wraps to a new row when adding the next cell would exceed <c>maxLineWidth</c> characters.
 ///
-/// No byte ruler, no offset column — the layout is content-driven; the "(N bytes)" annotation
-/// carries the wire-position information.
+/// A byte-offset ruler is drawn above each box row: the message-relative offset of every field
+/// boundary, plus the total size at the final boundary. This replaces the old per-field
+/// "(N bytes)" annotation — the gap between two adjacent offsets is the field's length, so the
+/// same wire-position information is carried far more compactly.
+///
+/// Repeated structures (RowDescription field descriptors, DataRow columns, …) are detected by
+/// the trailing <c>[index]</c> in each field name and rendered one element per row, indented
+/// four spaces, so a message with many repeats reads as a stack of small boxes rather than one
+/// enormous wrapped grid.
 /// </summary>
 internal static class AsciiArtRenderer
 {
@@ -36,15 +42,20 @@ internal static class AsciiArtRenderer
             return;
         }
 
-        var cells = BuildCells(fields);
-        var rows = PackIntoRows(cells, maxLineWidth);
-
-        foreach (var row in rows)
+        foreach (var group in GroupByElement(fields))
         {
-            WriteEdge(w, row);
-            WriteContentLine(w, row, c => c.Name);
-            WriteContentLine(w, row, c => c.Value);
-            WriteEdge(w, row);
+            int indent = group.Indented ? 4 : 0;
+            var cells = BuildCells(group.Fields);
+            var rows = PackIntoRows(cells, maxLineWidth - indent);
+
+            foreach (var row in rows)
+            {
+                WriteRuler(w, row, indent);
+                WriteEdge(w, row, indent);
+                WriteContentLine(w, row, indent, c => c.Name);
+                WriteContentLine(w, row, indent, c => c.Value);
+                WriteEdge(w, row, indent);
+            }
         }
     }
 
@@ -97,11 +108,19 @@ internal static class AsciiArtRenderer
             WriteArrowLine(w, label, frontEnd, channel);
             if (closes)
             {
-                // Session boundary: blank separator unless this is the very last line.
-                if (i < lines.Count - 1)
+                // A closing boundary followed by a genuinely new session gets a blank
+                // separator — the ASCII analog of splitting into a fresh Mermaid diagram.
+                // But a closing boundary followed by another closing boundary (e.g.
+                // ReadyForQuery then Terminate) is one continuous teardown, so it gets a
+                // plain gap line; and the very last line gets nothing after it.
+                if (i < lines.Count - 1 && !lines[i + 1].ClosesDiagram)
                 {
                     WriteGapLine(w, channel);
                     w.WriteLine();
+                    WriteGapLine(w, channel);
+                }
+                else if (i < lines.Count - 1)
+                {
                     WriteGapLine(w, channel);
                 }
             }
@@ -256,7 +275,7 @@ internal static class AsciiArtRenderer
         w.WriteLine(sb.ToString());
     }
 
-    private sealed record Cell(string Name, string Value, int InnerWidth);
+    private sealed record Cell(string Name, string Value, int InnerWidth, int Offset, int Length);
 
     private static List<Cell> BuildCells(IReadOnlyList<ParsedField> fields)
     {
@@ -264,19 +283,45 @@ internal static class AsciiArtRenderer
         foreach (var f in fields)
         {
             string valueText = FormatDisplay(f);
-            string fullValue = f.Length > 1
-                ? AppendByteAnnotation(valueText, f.Length)
-                : valueText;
-            int innerWidth = Math.Max(f.Name.Length, fullValue.Length);
-            cells.Add(new Cell(f.Name, fullValue, innerWidth));
+            int innerWidth = Math.Max(f.Name.Length, valueText.Length);
+            cells.Add(new Cell(f.Name, valueText, innerWidth, f.Offset, f.Length));
         }
         return cells;
     }
 
-    private static string AppendByteAnnotation(string valueText, int byteCount)
+    /// <summary>A run of fields rendered as one box row (or wrapped set of rows). Repeated
+    /// elements — fields whose name ends in <c>[index]</c> — are indented; header fields are not.</summary>
+    private sealed record FieldGroup(bool Indented, List<ParsedField> Fields);
+
+    /// <summary>
+    /// Split the flat field list into consecutive runs sharing the same trailing <c>[index]</c>
+    /// (header fields, with no index, form their own un-indexed runs). Each indexed run is one
+    /// repeated element and is rendered on its own indented line; un-indexed runs render flush left.
+    /// </summary>
+    private static List<FieldGroup> GroupByElement(IReadOnlyList<ParsedField> fields)
     {
-        string suffix = $"({byteCount} bytes)";
-        return string.IsNullOrEmpty(valueText) ? suffix : $"{valueText} {suffix}";
+        var groups = new List<FieldGroup>();
+        int? currentKey = null;
+        foreach (var f in fields)
+        {
+            int? idx = ExtractIndex(f.Name);
+            if (groups.Count == 0 || currentKey != idx)
+            {
+                groups.Add(new FieldGroup(idx.HasValue, new List<ParsedField>()));
+                currentKey = idx;
+            }
+            groups[^1].Fields.Add(f);
+        }
+        return groups;
+    }
+
+    /// <summary>Returns the integer in a trailing <c>[n]</c> suffix, or null if the name has none.</summary>
+    private static int? ExtractIndex(string name)
+    {
+        if (name.Length < 3 || name[^1] != ']') return null;
+        int open = name.LastIndexOf('[');
+        if (open < 0 || open == name.Length - 2) return null;
+        return int.TryParse(name.AsSpan(open + 1, name.Length - open - 2), out int idx) ? idx : null;
     }
 
     /// <summary>
@@ -287,6 +332,7 @@ internal static class AsciiArtRenderer
     /// </summary>
     private static List<List<Cell>> PackIntoRows(List<Cell> cells, int maxLineWidth)
     {
+        if (maxLineWidth < 20) maxLineWidth = 20;
         var rows = new List<List<Cell>> { new() };
         int currentWidth = 1; // leading '|'
 
@@ -306,9 +352,10 @@ internal static class AsciiArtRenderer
         return rows;
     }
 
-    private static void WriteEdge(TextWriter w, List<Cell> row)
+    private static void WriteEdge(TextWriter w, List<Cell> row, int indent)
     {
         var sb = new StringBuilder();
+        sb.Append(' ', indent);
         sb.Append('+');
         foreach (var cell in row)
         {
@@ -318,9 +365,10 @@ internal static class AsciiArtRenderer
         w.WriteLine(sb.ToString());
     }
 
-    private static void WriteContentLine(TextWriter w, List<Cell> row, Func<Cell, string> select)
+    private static void WriteContentLine(TextWriter w, List<Cell> row, int indent, Func<Cell, string> select)
     {
         var sb = new StringBuilder();
+        sb.Append(' ', indent);
         sb.Append('|');
         foreach (var cell in row)
         {
@@ -330,6 +378,53 @@ internal static class AsciiArtRenderer
             sb.Append('|');
         }
         w.WriteLine(sb.ToString());
+    }
+
+    /// <summary>
+    /// Draws the byte-offset ruler that sits above a box row: each field's message-relative
+    /// offset placed at that field's left boundary, and the total offset (offset + length of the
+    /// last field) right-aligned at the final boundary. An offset is skipped if it would collide
+    /// with the previous one, so narrow boxes never produce overlapping numbers.
+    /// </summary>
+    private static void WriteRuler(TextWriter w, List<Cell> row, int indent)
+    {
+        int width = 1;
+        foreach (var cell in row) width += cell.InnerWidth + 3;
+
+        var chars = new char[width];
+        Array.Fill(chars, ' ');
+
+        int col = 0;
+        int nextFree = 0;
+        foreach (var cell in row)
+        {
+            Place(chars, col, cell.Offset.ToString(), rightAlign: false, ref nextFree);
+            col += cell.InnerWidth + 3;
+        }
+
+        // Final boundary sits at column width - 1; show the offset just past the last field.
+        int total = row[^1].Offset + row[^1].Length;
+        Place(chars, width - 1, total.ToString(), rightAlign: true, ref nextFree);
+
+        w.WriteLine(new string(' ', indent) + new string(chars).TrimEnd());
+    }
+
+    /// <summary>
+    /// Writes <paramref name="text"/> into <paramref name="buffer"/> anchored at <paramref name="boundary"/>
+    /// (its left edge when <paramref name="rightAlign"/> is false, its right edge when true). Left-anchored
+    /// text is skipped if it would overlap already-written content (<paramref name="nextFree"/>);
+    /// right-anchored text (the total) is always drawn.
+    /// </summary>
+    private static void Place(char[] buffer, int boundary, string text, bool rightAlign, ref int nextFree)
+    {
+        int start = rightAlign ? boundary - (text.Length - 1) : boundary;
+        if (start < 0) start = 0;
+        if (start + text.Length > buffer.Length) start = buffer.Length - text.Length;
+        if (start < 0) return;
+        if (!rightAlign && start < nextFree) return; // would collide with the previous number
+
+        text.CopyTo(0, buffer, start, text.Length);
+        nextFree = start + text.Length + 1;
     }
 
     private static void WriteSingleBox(TextWriter w, string text)

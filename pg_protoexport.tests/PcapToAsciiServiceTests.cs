@@ -41,7 +41,7 @@ public class PcapToAsciiServiceTests : IDisposable
     }
 
     [Fact]
-    public void Output_ContainsDirectionTaggedHeader_AndNoRulerOrPrefix()
+    public void Output_ContainsDirectionTaggedHeader_AndOffsetRuler()
     {
         var packets = ParseExtendedQuery();
         var service = PcapToAsciiService.Create();
@@ -53,8 +53,9 @@ public class PcapToAsciiServiceTests : IDisposable
         Assert.Matches(@"\[(F->B|B->F)\] \w+ \(\d+ bytes\)", content);
         // No byte-offset column on the left of value lines
         Assert.DoesNotContain("0x0000", content);
-        // No "+0  +4  +8" ruler at the top of each message
-        Assert.DoesNotMatch(@"\+0\s+\+4\s+\+8", content);
+        // Every message opens with a plain byte-offset ruler: the 1-byte code at offset 0,
+        // then the 4-byte length boundary at offset 1, then the next field at offset 5.
+        Assert.Matches(@"(?m)^0\s+1\s+5\b", content);
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class PcapToAsciiServiceTests : IDisposable
     }
 
     [Fact]
-    public void Output_MultiByteFields_HaveByteCountAnnotation()
+    public void Output_FieldLengths_AreConveyedByRuler_NotPerFieldAnnotation()
     {
         var packets = ParseExtendedQuery();
         var service = PcapToAsciiService.Create();
@@ -86,25 +87,12 @@ public class PcapToAsciiServiceTests : IDisposable
         service.PcapToAscii(packets, outputFile);
         var content = File.ReadAllText(outputFile);
 
-        // The 4-byte length field shows "(4 bytes)" on the value line
-        Assert.Contains("(4 bytes)", content);
-        // The 2-byte parameterCount shows "(2 bytes)"
-        Assert.Contains("(2 bytes)", content);
-    }
-
-    [Fact]
-    public void Output_OneByteFields_HaveNoByteCountAnnotation()
-    {
-        // For a 1-byte field with displayed value, the annotation would be redundant — verify
-        // the code cell ('Q', 'P', etc.) appears without "(1 byte)" tagged onto it.
-        var packets = ParseExtendedQuery();
-        var service = PcapToAsciiService.Create();
-        var outputFile = Path.Combine(_tempDir, "out.txt");
-
-        service.PcapToAscii(packets, outputFile);
-        var content = File.ReadAllText(outputFile);
-
-        Assert.DoesNotMatch(@"'[A-Z]' \(1 byte\)", content);
+        // The old per-field "(N bytes)" annotation is gone; the ruler carries the same
+        // wire-position information far more compactly.
+        Assert.DoesNotContain("(4 bytes)", content);
+        Assert.DoesNotContain("(2 bytes)", content);
+        // A ruler line reads as ascending, space-separated byte offsets.
+        Assert.Matches(@"(?m)^0\s+1\s+5\b", content);
     }
 
     [Fact]
@@ -188,7 +176,35 @@ public class PcapToAsciiServiceTests : IDisposable
         var output = sw.ToString();
 
         Assert.Contains(longValue, output);
-        Assert.Contains("(195 bytes)", output);
+        // The ruler's final boundary is the total size (5 + 195); no per-field annotation.
+        Assert.DoesNotContain("(195 bytes)", output);
+        Assert.Contains("200", output);
+    }
+
+    [Fact]
+    public void Renderer_RepeatedElements_EachOnItsOwnIndentedRow()
+    {
+        // Two repeated descriptors ([0] and [1]) plus un-indexed header fields.
+        var fields = new[]
+        {
+            new ParsedField("code",          0, 1, "T"),
+            new ParsedField("length",        1, 4, "40"),
+            new ParsedField("fieldCount",    5, 2, "2"),
+            new ParsedField("columnName[0]", 7, 6, "id"),
+            new ParsedField("typeOid[0]",   13, 4, "23"),
+            new ParsedField("columnName[1]",17, 6, "name"),
+            new ParsedField("typeOid[1]",   23, 4, "1043"),
+        };
+
+        var sw = new StringWriter();
+        AsciiArtRenderer.WriteFields(sw, fields, totalBytes: 27, maxLineWidth: 400);
+        var lines = sw.ToString().Split('\n');
+
+        // Header fields render flush-left; each repeated element is indented four spaces and the
+        // two descriptors land on separate rows (not merged into one wide grid).
+        Assert.Contains(lines, l => l.Contains("| code |") && !l.StartsWith("    "));
+        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName[0]") && !l.Contains("columnName[1]"));
+        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName[1]") && !l.Contains("columnName[0]"));
     }
 
     private static List<PostgresPacket> BuildDataRowSequence(int dataRowCount)
