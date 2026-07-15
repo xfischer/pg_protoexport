@@ -308,7 +308,10 @@ public class PcapToMermaidService(ILogger<PcapToMermaidService> logger) : IPcapT
     static int NullTermBytes(string? text)
         => text is null or "" ? 1 : Encoding.UTF8.GetByteCount(text) + 1;
 
-    static string Escape(string text) => text.Replace("\"", "'");
+    // Control bytes (e.g. a binary-format DataRow column value misdecoded as UTF-8 text) must not
+    // reach the output raw: a stray \n/\r inside a "+N: "label"" line breaks mermaid's packet-diagram
+    // line grammar and the diagram fails to parse.
+    static string Escape(string text) => ControlCharacters.EscapeControlChars(text).Replace("\"", "'");
 
     static string Truncate(string? text, int maxLength)
     {

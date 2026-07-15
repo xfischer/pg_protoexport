@@ -38,7 +38,7 @@ public class PcapToPqTraceService(ILogger<PcapToPqTraceService> logger) : IPcapT
                 writer.Write('\t');
                 writer.Write(m.Name);
                 writer.Write('\t');
-                writer.WriteLine(m.GetStringRepresentation());
+                writer.WriteLine(ControlCharacters.EscapeControlChars(m.GetStringRepresentation()));
             }
         }
     }

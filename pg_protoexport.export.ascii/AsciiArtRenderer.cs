@@ -478,7 +478,7 @@ internal static class AsciiArtRenderer
             else if (c == '\n') sb.Append("\\n");
             else if (c == '\r') sb.Append("\\r");
             else if (c == '\t') sb.Append("\\t");
-            else if (c < ' ' || c == 0x7F) sb.AppendFormat("\\x{0:X2}", (int)c);
+            else if (ControlCharacters.IsControl(c)) sb.AppendFormat("\\x{0:X2}", (int)c);
             else sb.Append(c);
         }
         sb.Append('"');
