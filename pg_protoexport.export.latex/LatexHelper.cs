@@ -32,9 +32,9 @@ public static class LatexHelper
             // Non-printable bytes (e.g. a binary-format column value misdecoded as UTF-8 text)
             // are invalid characters to pdfTeX. Render them as their visible ASCII mnemonic
             // (\NUL, \STX, \DEL, ...) instead of emitting raw control bytes that abort the LaTeX build.
-            if (c < 0x20 || c == 0x7F)
+            if (ControlCharacters.IsControl(c))
             {
-                sb.Append("\\textbackslash ").Append(ControlMnemonic(c));
+                sb.Append("\\textbackslash ").Append(ControlCharacters.Mnemonic(c));
                 continue;
             }
 
@@ -99,9 +99,9 @@ public static class LatexHelper
         }
 
         // Every other control byte (incl. NUL) renders as its ASCII mnemonic (\NUL, \STX, \DEL, ...).
-        if (c < 0x20 || c == 0x7F)
+        if (ControlCharacters.IsControl(c))
         {
-            sb.Append("\\textbackslash ").Append(ControlMnemonic(c));
+            sb.Append("\\textbackslash ").Append(ControlCharacters.Mnemonic(c));
             return;
         }
 
@@ -329,22 +329,6 @@ public static class LatexHelper
     /// </summary>
     public static float CountExactRowsForMessage(int messageLength, int rowWidth, bool hasCodeByte = true)
         => CountExactRows(messageLength + (hasCodeByte ? 1 : 0), rowWidth);
-
-    // Standard ASCII mnemonics for the C0 control block (0x00-0x1F), indexed by code point.
-    // 0x7F (DEL) is handled separately in ControlMnemonic.
-    private static readonly string[] C0Mnemonics =
-    {
-        "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
-        "BS",  "HT",  "LF",  "VT",  "FF",  "CR",  "SO",  "SI",
-        "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
-        "CAN", "EM",  "SUB", "ESC", "FS",  "GS",  "RS",  "US",
-    };
-
-    /// <summary>
-    /// Maps a non-printable control character to its standard ASCII mnemonic (e.g. 0x00 → <c>NUL</c>,
-    /// 0x02 → <c>STX</c>, 0x7F → <c>DEL</c>). Only valid for <c>c &lt; 0x20 || c == 0x7F</c>.
-    /// </summary>
-    private static string ControlMnemonic(char c) => c == 0x7F ? "DEL" : C0Mnemonics[c];
 
     private static bool IsUtf8Continuation(byte b) => (b & 0xC0) == 0x80;
 
