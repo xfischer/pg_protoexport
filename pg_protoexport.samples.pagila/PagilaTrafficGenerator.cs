@@ -10,7 +10,15 @@ namespace pg_protoexport;
 //
 // Run a packet capture on port 5432 (tcpdump / Wireshark + Npcap) while this program
 // executes, then feed the resulting .pcapng to pg_protoexport to see every message
-// decoded.
+// decoded. (`capture-and-generate` does this for you, one .pcapng per scenario.)
+//
+// Startup probe: SslMode defaults to Prefer (see BuildConnectionString), so the
+// connection begins with an SSLRequest probe. A server with TLS off rejects it with a
+// single 'N' byte and the handshake continues in plaintext — this deterministically
+// exercises the probe-dispatch path (SSLRequest / SSLResponse) on any host, without the
+// Kerberos infrastructure a GSSENCRequest probe would require. The target server MUST
+// have TLS disabled (Postgres default `ssl=off`); otherwise Prefer upgrades to TLS and
+// the capture becomes encrypted and unreadable.
 //
 // Not reachable through stock Npgsql 10 (and therefore intentionally omitted):
 //   Flush                  — Npgsql always uses Sync.
@@ -59,7 +67,9 @@ internal static class PagilaTrafficGenerator
             return 1;
         }
 
-        await Scenario(1, "simple query, single statement", c => Scenario01_SimpleQuery(c), conn);
+        // Npgsql always uses extended protocol for parameterized queries, so the simple-query examples are not reachable through stock Npgsql 10. They are left here for completeness.
+        // A separate C project is available to generate the simple-query traffic
+        //await Scenario(1, "simple query, single statement", c => Scenario01_SimpleQuery(c), conn);
         await Scenario(2, "empty query (EmptyQueryResponse)", c => Scenario02_EmptyQuery(c), conn);
         await Scenario(3, "simple query, batched statements", c => Scenario03_SimpleQueryBatched(c), conn);
         await Scenario(4, "extended query, unnamed statement", c => Scenario04_ExtendedUnnamed(c), conn);
@@ -95,9 +105,13 @@ internal static class PagilaTrafficGenerator
             Pooling = false,
             MaxAutoPrepare = 0,
         };
+        // Prefer (not Disable) so the handshake starts with an SSLRequest probe that a
+        // TLS-off server rejects with 'N', keeping the capture readable while exercising the
+        // probe-dispatch path. Requires the server to have TLS disabled (see header comment).
+        // Override with PGSSLMODE (e.g. Disable to drop the probe, Require to force TLS).
         csb.SslMode = Enum.TryParse<SslMode>(Environment.GetEnvironmentVariable("PGSSLMODE"), true, out var sslMode)
             ? sslMode
-            : SslMode.Disable;
+            : SslMode.Prefer;
         return csb;
     }
 
@@ -191,7 +205,7 @@ internal static class PagilaTrafficGenerator
 
     // ------------------------------------------------------------------------
     // 4. Extended query, unnamed statement.
-    //    Adding a parameter ($1) forces the extended protocol. Without Prepare,
+    //    Adding parameters ($1, $2) forces the extended protocol. Without Prepare,
     //    Npgsql uses empty names for the statement AND the portal.
     //    Wire: P(name="") → B(portal="", stmt="") → D('P', "") → E(MaxRows=0) → S
     //         →  1 (ParseComplete), 2 (BindComplete), T, D, C, Z.
@@ -199,12 +213,13 @@ internal static class PagilaTrafficGenerator
     private static async Task Scenario04_ExtendedUnnamed(NpgsqlConnection conn)
     {
         await using var cmd = new NpgsqlCommand(
-            "SELECT title, release_year FROM film WHERE film_id = $1", conn);
-        cmd.Parameters.AddWithValue(42);
+            "SELECT film_id, title, length FROM film WHERE rating = $1::mpaa_rating AND length < $2", conn);
+        cmd.Parameters.AddWithValue("PG");
+        cmd.Parameters.AddWithValue(90);
         await using var rdr = await cmd.ExecuteReaderAsync();
         while (await rdr.ReadAsync())
-            _log.LogInformation("  film 42 = '{Title}' ({Year})",
-                rdr.GetString(0), rdr.IsDBNull(1) ? (object)"<null>" : rdr.GetValue(1));
+            _log.LogInformation("  short PG film {Id} = '{Title}' ({Length} min)",
+                rdr.GetInt32(0), rdr.GetString(1), rdr.GetValue(2));
     }
 
     // ------------------------------------------------------------------------
@@ -220,16 +235,19 @@ internal static class PagilaTrafficGenerator
     private static async Task Scenario05_PreparedNamed(NpgsqlConnection conn)
     {
         await using var cmd = new NpgsqlCommand(
-            "SELECT title FROM film WHERE film_id = $1", conn);
-        var idParam = cmd.Parameters.AddWithValue(1);
+            "SELECT film_id, title, length FROM film WHERE rating = $1::mpaa_rating AND length < $2", conn);
+        var ratingParam = cmd.Parameters.AddWithValue("G");
+        var lengthParam = cmd.Parameters.AddWithValue(60);
         await cmd.PrepareAsync();
 
-        foreach (int id in new[] { 1, 7, 13 })
+        foreach (var (rating, maxLength) in new[] { ("G", 60), ("PG", 90), ("R", 120) })
         {
-            idParam.Value = id;
+            ratingParam.Value = rating;
+            lengthParam.Value = maxLength;
             await using var rdr = await cmd.ExecuteReaderAsync();
             while (await rdr.ReadAsync())
-                _log.LogInformation("  film {Id} = '{Title}'", id, rdr.GetString(0));
+                _log.LogInformation("  {Rating} film under {Max} min: {Id} = '{Title}' ({Length} min)",
+                    rating, maxLength, rdr.GetInt32(0), rdr.GetString(1), rdr.GetValue(2));
         }
     }
 
@@ -265,10 +283,13 @@ internal static class PagilaTrafficGenerator
     private static async Task Scenario07_MaxRows(NpgsqlConnection conn)
     {
         await using var cmd = new NpgsqlCommand(
-            "SELECT film_id, title FROM film ORDER BY film_id", conn);
+            "SELECT film_id, title, length FROM film WHERE rating = $1::mpaa_rating AND length < $2 ORDER BY film_id", conn);
+        cmd.Parameters.AddWithValue("PG");
+        cmd.Parameters.AddWithValue(90);
         await using var rdr = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow);
         while (await rdr.ReadAsync())
-            _log.LogInformation("  first row: {Id} = '{Title}'", rdr.GetInt32(0), rdr.GetString(1));
+            _log.LogInformation("  first row: {Id} = '{Title}' ({Length} min)",
+                rdr.GetInt32(0), rdr.GetString(1), rdr.GetValue(2));
     }
 
     // ------------------------------------------------------------------------

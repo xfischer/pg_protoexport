@@ -1,13 +1,7 @@
 Packet (F)
-2026-05-21T07:41:38.6018020Z	F	34	Parse	statement=, query=SELECT count(*) FROM actor, parameter oids=[]
-2026-05-21T07:41:38.6018020Z	F	14	Bind	: formats: [], values len: [], results format: [1]
-2026-05-21T07:41:38.6018020Z	F	6	Describe	Portal: ''
-2026-05-21T07:41:38.6018020Z	F	9	Execute	portal='', maxrows=0
-2026-05-21T07:41:38.6018020Z	F	4	Sync	SyncMessage
+2026-07-13T16:36:55.5805140Z	F	33	Query	SELECT * FROM actor LIMIT 1;
 Packet (B)
-2026-05-21T07:41:38.6081060Z	B	4	ParseComplete	ParseCompleteMessage
-2026-05-21T07:41:38.6081060Z	B	4	BindComplete	
-2026-05-21T07:41:38.6081060Z	B	30	RowDescription	[count: 0, 0, 20, 8, -1, 1]
-2026-05-21T07:41:38.6081060Z	B	18	DataRow	[count:00000000000000c8]
-2026-05-21T07:41:38.6081060Z	B	13	CommandComplete	SELECT 1
-2026-05-21T07:41:38.6081060Z	B	5	ReadyForQuery	Idle
+2026-07-13T16:36:55.5836080Z	B	120	RowDescription	[actor_id: 1469051, 1, 23, 4, -1, 0, first_name: 1469051, 2, 1043, -1, 49, 0, last_name: 1469051, 3, 1043, -1, 49, 0, last_update: 1469051, 4, 1114, 8, -1, 0]
+2026-07-13T16:36:55.5836080Z	B	54	DataRow	[actor_id:2, first_name:NICK, last_name:WAHLBERG, last_update:2006-02-15 09:34:33]
+2026-07-13T16:36:55.5836080Z	B	13	CommandComplete	SELECT 1
+2026-07-13T16:36:55.5836080Z	B	5	ReadyForQuery	Idle

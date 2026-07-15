@@ -322,7 +322,7 @@
     "Columns": [
       {
         "Len": "8 (4 bytes)",
-        "Value": "server_time: \"0002f54dcfb9d64c\" (8 bytes)"
+        "Value": "server_time: \"0002f9a0e416a38b\" (8 bytes)"
       }
     ]
   }

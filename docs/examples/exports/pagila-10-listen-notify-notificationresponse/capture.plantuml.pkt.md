@@ -137,7 +137,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCRequest": {
+  "SSLRequest": {
     "Code": "? (1 byte)",
     "Length": "8 (4 bytes)"
   }
@@ -151,7 +151,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCResponse": {
+  "SSLResponse": {
     "Code": "? (1 byte)",
     "Length": "1 (4 bytes)"
   }
@@ -277,8 +277,8 @@
   "BackendKeyData": {
     "Code": "K (1 byte)",
     "Length": "12 (4 bytes)",
-    "PID": "13592 (4 bytes)",
-    "Key": "4088747384 (4 bytes)"
+    "PID": "130392 (4 bytes)",
+    "Key": "391474776 (4 bytes)"
   }
 }
 @endjson
@@ -305,7 +305,7 @@
       },
       {
         "Type": "M (1 byte)",
-        "Message": "\"Welcome to Pagila, the time is 2026-05-21 09:41...\" (61 bytes)"
+        "Message": "\"Welcome to Pagila, the time is 2026-07-15 10:29...\" (61 bytes)"
       },
       {
         "Type": "W (1 byte)",

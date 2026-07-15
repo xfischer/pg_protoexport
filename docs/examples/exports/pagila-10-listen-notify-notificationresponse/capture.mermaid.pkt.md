@@ -144,7 +144,7 @@ packet
 
 ```mermaid
 ---
-title: "GSSENCRequest"
+title: "SSLRequest"
 config:
   packet:
     bitsPerRow: 32
@@ -159,7 +159,7 @@ packet
 
 ```mermaid
 ---
-title: "GSSENCResponse"
+title: "SSLResponse"
 config:
   packet:
     bitsPerRow: 32
@@ -290,8 +290,8 @@ config:
 packet
     +1: "K"
     +4: "Length: 12"
-    +4: "PID: 13592"
-    +4: "Key: 4088747384"
+    +4: "PID: 130392"
+    +4: "Key: 391474776"
 ```
 
 ```mermaid
@@ -311,7 +311,7 @@ packet
     +1: "C"
     +6: "00000"
     +1: "M"
-    +61: "Welcome to Pagila, the time is 2026-05-21 09:41..."
+    +61: "Welcome to Pagila, the time is 2026-07-15 10:29..."
     +1: "W"
     +53: "PL/pgSQL function _welcome_message() line 3 at ..."
     +1: "F"

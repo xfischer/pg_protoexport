@@ -101,10 +101,12 @@ public class StartupPhaseMessageTests
     [Fact]
     public void PcapService_PagilaStartup_FirstFrontendMessageIsProbeNotStartupMessage()
     {
-        // pagila-00 captures the startup handshake. Npgsql 10 sends a non-TLS startup probe
-        // (GSSENCRequest, code 80877104) as the very first frontend message even with
-        // SslMode=Disable. The new dispatch must surface this as GSSENCRequestMessage,
-        // not as the legacy "8-byte = always SSLRequest" misclassification.
+        // pagila-00 captures the startup handshake. The pagila sample connects with
+        // SslMode=Prefer, so Npgsql sends a non-TLS startup probe (SSLRequest, code 80877103) as
+        // the very first frontend message — a TLS-off server rejects it and the handshake
+        // continues in plaintext. The dispatch must surface this as SSLRequestMessage (or
+        // GSSENCRequestMessage on a Kerberos host), not as the legacy "8-byte = always
+        // SSLRequest"... i.e. it must decode the probe rather than a StartupMessage.
         var service = NewService();
         var packets = service.ConvertPcap("../../../../docs/examples/captures/pagila-00-startup-handshake-startup-authentication-parameterstatus-readyforquery.pcapng", pgsqlPortNumber: 5434).ToList();
 
@@ -130,10 +132,10 @@ public class StartupPhaseMessageTests
     [Fact]
     public void PcapService_PagilaStartup_ProbeReplyDispatchesToResponseMessage()
     {
-        // After the frontend probe, the server replies with a single byte ('N' for reject in
-        // the pagila case since the local server has neither TLS nor GSSAPI configured).
-        // That single byte must come back as SSLResponseMessage or GSSENCResponseMessage, NOT
-        // as NoticeResponseMessage (which the byte's 'N' code would map to under the catalog).
+        // After the frontend probe, the server replies with a single byte ('N' for reject, since
+        // the sample's server has TLS disabled). That single byte must come back as
+        // SSLResponseMessage or GSSENCResponseMessage, NOT as NoticeResponseMessage (which the
+        // byte's 'N' code would map to under the catalog).
         var service = NewService();
         var packets = service.ConvertPcap("../../../../docs/examples/captures/pagila-00-startup-handshake-startup-authentication-parameterstatus-readyforquery.pcapng", pgsqlPortNumber: 5434).ToList();
 

@@ -1,10 +1,10 @@
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
-    C->>S: GSSENCRequest
-    S->>C: GSSENCResponse
+    C->>S: SSLRequest
+    S->>C: SSLResponse
     C->>S: StartupMessage
     S->>C: AuthenticationRequest
     C->>S: Password
@@ -18,7 +18,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Query
     S->>C: RowDescription / DataRow / CommandComplete / RowDescription

@@ -1,7 +1,7 @@
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Parse / Bind / Describe / Execute / Sync
     S->>C: ParseComplete / BindComplete / NoData / CommandComplete
@@ -10,10 +10,10 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
-    C->>S: GSSENCRequest
-    S->>C: GSSENCResponse
+    C->>S: SSLRequest
+    S->>C: SSLResponse
     C->>S: StartupMessage
     S->>C: AuthenticationRequest
     C->>S: Password
@@ -27,7 +27,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Parse / Bind / Describe / Execute / Sync
     S->>C: ParseComplete / BindComplete / NoData / CommandComplete
@@ -36,7 +36,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     S->>C: Unknown
     C->>S: Terminate
@@ -44,7 +44,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Parse / Bind / Describe / Execute / Sync
     S->>C: ParseComplete / BindComplete / RowDescription / DataRow / CommandComplete
@@ -53,7 +53,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Parse / Bind / Describe / Execute / Sync
     S->>C: ParseComplete / BindComplete / NoData / CommandComplete

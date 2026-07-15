@@ -327,7 +327,7 @@ packet
     +4: "Length: 18"
     +2: "Fields: 1"
     +4: "Len: 8"
-    +8: "server_time: 0002f54dcfb9d64c"
+    +8: "server_time: 0002f9a0e416a38b"
 ```
 
 ```mermaid

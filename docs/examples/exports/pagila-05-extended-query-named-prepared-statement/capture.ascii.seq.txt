@@ -1,4 +1,4 @@
-Client (::1:57479)                            Server (::1:5434)
+Client (::1:65235)                            Server (::1:5434)
 |                                                             |
 |------------------ Parse / Describe / Sync ----------------->|
 |                                                             |
@@ -10,7 +10,7 @@ Client (::1:57479)                            Server (::1:5434)
 |                                                             |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
-|<-------- BindComplete / DataRow / CommandComplete ----------|
+|<----- BindComplete / DataRow (x21) / CommandComplete -------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
 |                                                             |
@@ -18,7 +18,7 @@ Client (::1:57479)                            Server (::1:5434)
 |                                                             |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
-|<-------- BindComplete / DataRow / CommandComplete ----------|
+|<----- BindComplete / DataRow (x62) / CommandComplete -------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
 |                                                             |
@@ -26,6 +26,6 @@ Client (::1:57479)                            Server (::1:5434)
 |                                                             |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
-|<-------- BindComplete / DataRow / CommandComplete ----------|
+|<----- BindComplete / DataRow (x103) / CommandComplete ------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|

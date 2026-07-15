@@ -1,117 +1,64 @@
 
-# Packet 1 (5 messages, FrontEnd --> BackEnd)
+# Packet 1 (1 messages, FrontEnd --> BackEnd)
 
 ```plantuml
 @startjson
 {
-  "Parse": {
-    "Code": "P (1 byte)",
-    "Length": "34 (4 bytes)",
-    "Stmt": "\"\" (1 byte)",
-    "Query": "\"SELECT count(*) FROM actor\" (27 bytes)",
-    "Params": "0 (2 bytes)"
-  }
-}
-@endjson
-```
-
-```plantuml
-@startjson
-{
-  "Bind": {
-    "Code": "B (1 byte)",
-    "Length": "14 (4 bytes)",
-    "Portal": "\"\" (1 byte)",
-    "Statement": "\"\" (1 byte)",
-    "FmtCount": "0 (2 bytes)",
-    "ValCount": "0 (2 bytes)",
-    "ResFmtCount": "1 (2 bytes)",
-    "ResultFormats": [
-      "Binary (2 bytes)"
-    ]
-  }
-}
-@endjson
-```
-
-```plantuml
-@startjson
-{
-  "Describe": {
-    "Code": "D (1 byte)",
-    "Length": "6 (4 bytes)",
-    "PortalOrStatement": "P (1 byte)",
-    "Portal": "\"\" (1 byte)"
-  }
-}
-@endjson
-```
-
-```plantuml
-@startjson
-{
-  "Execute": {
-    "Code": "E (1 byte)",
-    "Length": "9 (4 bytes)",
-    "Portal": "\"\" (1 byte)",
-    "MaxRows": "0 (4 bytes)"
-  }
-}
-@endjson
-```
-
-```plantuml
-@startjson
-{
-  "Sync": {
-    "Code": "S (1 byte)",
-    "Length": "4 (4 bytes)"
+  "Query": {
+    "Code": "Q (1 byte)",
+    "Length": "33 (4 bytes)",
+    "Query": "\"SELECT * FROM actor LIMIT 1;\" (29 bytes)"
   }
 }
 @endjson
 ```
 
 
-# Packet 2 (6 messages, FrontEnd <-- BackEnd)
-
-```plantuml
-@startjson
-{
-  "ParseComplete": {
-    "Code": "1 (1 byte)",
-    "Length": "4 (4 bytes)"
-  }
-}
-@endjson
-```
-
-```plantuml
-@startjson
-{
-  "BindComplete": {
-    "Code": "2 (1 byte)",
-    "Length": "4 (4 bytes)"
-  }
-}
-@endjson
-```
+# Packet 2 (4 messages, FrontEnd <-- BackEnd)
 
 ```plantuml
 @startjson
 {
   "RowDescription": {
     "Code": "T (1 byte)",
-    "Length": "30 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "120 (4 bytes)",
+    "Fields": "4 (2 bytes)",
     "FieldDescriptions": [
       {
-        "Name": "\"count\" (6 bytes)",
-        "TableOid": "0 (4 bytes)",
-        "ColIdx": "0 (2 bytes)",
-        "TypeOid": "20 (4 bytes)",
+        "Name": "\"actor_id\" (9 bytes)",
+        "TableOid": "1469051 (4 bytes)",
+        "ColIdx": "1 (2 bytes)",
+        "TypeOid": "23 (4 bytes)",
+        "ColLen": "4 (2 bytes)",
+        "TypeMod": "-1 (4 bytes)",
+        "Format": "Text (2 bytes)"
+      },
+      {
+        "Name": "\"first_name\" (11 bytes)",
+        "TableOid": "1469051 (4 bytes)",
+        "ColIdx": "2 (2 bytes)",
+        "TypeOid": "1043 (4 bytes)",
+        "ColLen": "-1 (2 bytes)",
+        "TypeMod": "49 (4 bytes)",
+        "Format": "Text (2 bytes)"
+      },
+      {
+        "Name": "\"last_name\" (10 bytes)",
+        "TableOid": "1469051 (4 bytes)",
+        "ColIdx": "3 (2 bytes)",
+        "TypeOid": "1043 (4 bytes)",
+        "ColLen": "-1 (2 bytes)",
+        "TypeMod": "49 (4 bytes)",
+        "Format": "Text (2 bytes)"
+      },
+      {
+        "Name": "\"last_update\" (12 bytes)",
+        "TableOid": "1469051 (4 bytes)",
+        "ColIdx": "4 (2 bytes)",
+        "TypeOid": "1114 (4 bytes)",
         "ColLen": "8 (2 bytes)",
         "TypeMod": "-1 (4 bytes)",
-        "Format": "Binary (2 bytes)"
+        "Format": "Text (2 bytes)"
       }
     ]
   }
@@ -124,12 +71,24 @@
 {
   "DataRow": {
     "Code": "D (1 byte)",
-    "Length": "18 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "54 (4 bytes)",
+    "Fields": "4 (2 bytes)",
     "Columns": [
       {
+        "Len": "1 (4 bytes)",
+        "Value": "actor_id: \"2\" (1 bytes)"
+      },
+      {
+        "Len": "4 (4 bytes)",
+        "Value": "first_name: \"NICK\" (4 bytes)"
+      },
+      {
         "Len": "8 (4 bytes)",
-        "Value": "count: \"00000000000000c8\" (8 bytes)"
+        "Value": "last_name: \"WAHLBERG\" (8 bytes)"
+      },
+      {
+        "Len": "19 (4 bytes)",
+        "Value": "last_update: \"2006-02-15 09:34:33\" (19 bytes)"
       }
     ]
   }

@@ -79,7 +79,7 @@ packet
 
 ```mermaid
 ---
-title: "GSSENCRequest"
+title: "SSLRequest"
 config:
   packet:
     bitsPerRow: 32
@@ -94,7 +94,7 @@ packet
 
 ```mermaid
 ---
-title: "GSSENCResponse"
+title: "SSLResponse"
 config:
   packet:
     bitsPerRow: 32
@@ -187,7 +187,7 @@ packet
     +1: "F"
     +11: "postgres.c"
     +1: "L"
-    +5: "3465"
+    +5: "3466"
     +1: "R"
     +18: "ProcessInterrupts"
 ```

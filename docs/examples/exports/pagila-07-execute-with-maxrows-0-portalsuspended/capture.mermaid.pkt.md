@@ -10,10 +10,12 @@ config:
 ---
 packet
     +1: "P"
-    +4: "Length: 56"
+    +4: "Length: 119"
     +1: "Stmt: "
-    +49: "Query: SELECT film_id, title FROM film ORDER BY film_id"
-    +2: "Params: 0"
+    +104: "Query: SELECT film_id, title, length FROM film WHERE r..."
+    +2: "Params: 2"
+    +4: "OID: 25"
+    +4: "OID: 23"
 ```
 
 ```mermaid
@@ -25,11 +27,17 @@ config:
 ---
 packet
     +1: "B"
-    +4: "Length: 14"
+    +4: "Length: 32"
     +1: "Portal: "
     +1: "Statement: "
-    +2: "Fmt count: 0"
-    +2: "Val count: 0"
+    +2: "Fmt count: 2"
+    +2: "Text"
+    +2: "Binary"
+    +2: "Val count: 2"
+    +4: "Len: 2"
+    +2: "data"
+    +4: "Len: 4"
+    +4: "data"
     +2: "Res fmt count: 1"
     +2: "Binary"
 ```
@@ -75,7 +83,7 @@ packet
 ```
 
 
-# Packet 2 (242 messages, FrontEnd <-- BackEnd)
+# Packet 2 (67 messages, FrontEnd <-- BackEnd)
 
 ```mermaid
 ---
@@ -110,8 +118,8 @@ config:
 ---
 packet
     +1: "T"
-    +4: "Length: 56"
-    +2: "Fields: 2"
+    +4: "Length: 81"
+    +2: "Fields: 3"
     +8: "Name: film_id"
     +4: "TableOid: 1469070"
     +2: "ColIdx: 1"
@@ -126,103 +134,32 @@ packet
     +2: "ColLen: -1"
     +4: "TypeMod: 259"
     +2: "Binary"
+    +7: "Name: length"
+    +4: "TableOid: 1469070"
+    +2: "ColIdx: 9"
+    +4: "TypeOid: 21"
+    +2: "ColLen: 2"
+    +4: "TypeMod: -1"
+    +2: "Binary"
 ```
 
 ```mermaid
 ---
-title: "DataRow (x239)"
+title: "DataRow (x62)"
 config:
   packet:
     bitsPerRow: 32
 ---
 packet
     +1: "D"
-    +4: "Length: 34"
-    +2: "Fields: 2"
+    +4: "Length: 40"
+    +2: "Fields: 3"
     +4: "Len: 4"
     +4: "film_id: 00000001"
     +4: "Len: 16"
     +16: "title: 41434144454d592044494e4f53415552"
-```
-
-
-# Packet 3 (248 messages, FrontEnd <-- BackEnd)
-
-```mermaid
----
-title: "DataRow (x248)"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "D"
-    +4: "Length: 28"
-    +2: "Fields: 2"
-    +4: "Len: 4"
-    +4: "film_id: 000000f0"
-    +4: "Len: 10"
-    +10: "title: 444f4c4c532052414745"
-```
-
-
-# Packet 4 (249 messages, FrontEnd <-- BackEnd)
-
-```mermaid
----
-title: "DataRow (x249)"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "D"
-    +4: "Length: 32"
-    +2: "Fields: 2"
-    +4: "Len: 4"
-    +4: "film_id: 000001e8"
-    +4: "Len: 14"
-    +14: "title: 4a4f4f4e204e4f52544857455354"
-```
-
-
-# Packet 5 (247 messages, FrontEnd <-- BackEnd)
-
-```mermaid
----
-title: "DataRow (x247)"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "D"
-    +4: "Length: 31"
-    +2: "Fields: 2"
-    +4: "Len: 4"
-    +4: "film_id: 000002e1"
-    +4: "Len: 13"
-    +13: "title: 524f434b20494e5354494e4354"
-```
-
-
-# Packet 6 (19 messages, FrontEnd <-- BackEnd)
-
-```mermaid
----
-title: "DataRow (x17)"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "D"
-    +4: "Length: 32"
-    +2: "Fields: 2"
-    +4: "Len: 4"
-    +4: "film_id: 000003d8"
-    +4: "Len: 14"
-    +14: "title: 574f4e44455246554c2044524f50"
+    +4: "Len: 2"
+    +2: "length: 0056"
 ```
 
 ```mermaid
@@ -234,8 +171,8 @@ config:
 ---
 packet
     +1: "C"
-    +4: "Length: 16"
-    +12: "Tag: SELECT 1000"
+    +4: "Length: 14"
+    +10: "Tag: SELECT 62"
 ```
 
 ```mermaid
