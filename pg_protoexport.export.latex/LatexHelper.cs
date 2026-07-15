@@ -7,17 +7,40 @@ public static class LatexHelper
 {
     public static string Unescape(string str)
     {
-        return str
-            .Replace("\\", "\\textbackslash ")
-            .ReplaceLineEndings(" ")
-            .Replace("{", "\\{")
-            .Replace("}", "\\}")
-            .Replace("#", "\\#")
-            .Replace("$", "\\$")
-            .Replace("%", "\\%")
-            .Replace("&", "\\&")
-            .Replace("_", "\\_");
+        if (string.IsNullOrEmpty(str))
+            return string.Empty;
 
+        // Collapse line-ending variants to a single space first (preserves prior behavior),
+        // then escape LaTeX specials and visualize any remaining control bytes in one pass.
+        str = str.ReplaceLineEndings(" ");
+
+        var sb = new StringBuilder(str.Length);
+        foreach (char c in str)
+        {
+            switch (c)
+            {
+                case '\\': sb.Append("\\textbackslash "); continue;
+                case '{': sb.Append("\\{"); continue;
+                case '}': sb.Append("\\}"); continue;
+                case '#': sb.Append("\\#"); continue;
+                case '$': sb.Append("\\$"); continue;
+                case '%': sb.Append("\\%"); continue;
+                case '&': sb.Append("\\&"); continue;
+                case '_': sb.Append("\\_"); continue;
+            }
+
+            // Non-printable bytes (e.g. a binary-format column value misdecoded as UTF-8 text)
+            // are invalid characters to pdfTeX. Render them as their visible ASCII mnemonic
+            // (\NUL, \STX, \DEL, ...) instead of emitting raw control bytes that abort the LaTeX build.
+            if (c < 0x20 || c == 0x7F)
+            {
+                sb.Append("\\textbackslash ").Append(ControlMnemonic(c));
+                continue;
+            }
+
+            sb.Append(c);
+        }
+        return sb.ToString();
     }
 
     public static string TrimUnescape(string? str, int maxLength)
@@ -49,8 +72,10 @@ public static class LatexHelper
     /// Single-pass escape used in <see cref="LatexRenderOptions.Exact"/> mode. Renders every char
     /// either as a LaTeX-escaped literal (for special chars: <c>\</c>, <c>{</c>, <c>}</c>, <c>#</c>,
     /// <c>$</c>, <c>%</c>, <c>&amp;</c>, <c>_</c>) or as a visible glyph (for control chars and 0x7F).
-    /// Unlike <see cref="Unescape"/>, no line-ending collapse — newlines render as
-    /// <c>\textbackslash n</c> so the byte-exact intent is preserved.
+    /// Unlike <see cref="Unescape"/>, no line-ending collapse — newlines, carriage returns and tabs
+    /// keep their familiar <c>\textbackslash n</c> / <c>\textbackslash r</c> / <c>\textbackslash t</c>
+    /// escapes so the byte-exact intent is preserved; every other control byte (incl. NUL) renders
+    /// as its ASCII mnemonic.
     /// </summary>
     public static string UnescapeExact(string raw)
     {
@@ -71,12 +96,12 @@ public static class LatexHelper
             case '\n': sb.Append("\\textbackslash n"); return;
             case '\r': sb.Append("\\textbackslash r"); return;
             case '\t': sb.Append("\\textbackslash t"); return;
-            case '\0': sb.Append("\\textbackslash 0"); return;
         }
 
+        // Every other control byte (incl. NUL) renders as its ASCII mnemonic (\NUL, \STX, \DEL, ...).
         if (c < 0x20 || c == 0x7F)
         {
-            sb.Append("\\textbackslash x").Append(((int)c).ToString("X2"));
+            sb.Append("\\textbackslash ").Append(ControlMnemonic(c));
             return;
         }
 
@@ -304,6 +329,22 @@ public static class LatexHelper
     /// </summary>
     public static float CountExactRowsForMessage(int messageLength, int rowWidth, bool hasCodeByte = true)
         => CountExactRows(messageLength + (hasCodeByte ? 1 : 0), rowWidth);
+
+    // Standard ASCII mnemonics for the C0 control block (0x00-0x1F), indexed by code point.
+    // 0x7F (DEL) is handled separately in ControlMnemonic.
+    private static readonly string[] C0Mnemonics =
+    {
+        "NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
+        "BS",  "HT",  "LF",  "VT",  "FF",  "CR",  "SO",  "SI",
+        "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB",
+        "CAN", "EM",  "SUB", "ESC", "FS",  "GS",  "RS",  "US",
+    };
+
+    /// <summary>
+    /// Maps a non-printable control character to its standard ASCII mnemonic (e.g. 0x00 → <c>NUL</c>,
+    /// 0x02 → <c>STX</c>, 0x7F → <c>DEL</c>). Only valid for <c>c &lt; 0x20 || c == 0x7F</c>.
+    /// </summary>
+    private static string ControlMnemonic(char c) => c == 0x7F ? "DEL" : C0Mnemonics[c];
 
     private static bool IsUtf8Continuation(byte b) => (b & 0xC0) == 0x80;
 
