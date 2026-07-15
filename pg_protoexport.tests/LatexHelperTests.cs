@@ -18,6 +18,26 @@ public class LatexHelperTests
         Assert.Equal(expected, result);
     }
 
+    // Non-printable bytes (e.g. a binary column value misdecoded as text) render as their visible
+    // ASCII mnemonic (\NUL, \STX, \DEL, ...) rather than raw control bytes that would abort a pdfTeX
+    // build. The control characters are passed as integer code points and materialized at runtime
+    // (see BuildFromCodePoints) so no raw NUL/STX/DEL byte is ever written into this source file —
+    // those bytes previously corrupted it.
+    [Theory]
+    // NUL NUL NUL STX
+    [InlineData(new[] { 0x00, 0x00, 0x00, 0x02 }, "\\textbackslash NUL\\textbackslash NUL\\textbackslash NUL\\textbackslash STX")]
+    // DEL
+    [InlineData(new[] { 0x7F }, "\\textbackslash DEL")]
+    // BEL embedded between printable text
+    [InlineData(new[] { (int)'a', 0x07, (int)'b' }, "a\\textbackslash BELb")]
+    // TAB has no line-ending collapse here, so it renders as its HT mnemonic
+    [InlineData(new[] { 0x09 }, "\\textbackslash HT")]
+    public void Unescape_RendersNonPrintableBytesAsGlyphs(int[] codePoints, string expected)
+    {
+        var result = LatexHelper.Unescape(BuildFromCodePoints(codePoints));
+        Assert.Equal(expected, result);
+    }
+
     [Theory]
     [InlineData("short", 10, "short")]
     [InlineData("this is a long string", 10, "this is a $\\cdots$")]
@@ -53,14 +73,28 @@ public class LatexHelperTests
     [InlineData("\n", "\\textbackslash n")]
     [InlineData("\r", "\\textbackslash r")]
     [InlineData("\t", "\\textbackslash t")]
-    [InlineData("\0", "\\textbackslash 0")]
-    [InlineData("", "\\textbackslash x07")]
-    [InlineData("", "\\textbackslash x7F")]
     [InlineData("SELECT", "SELECT")]
     [InlineData("a\nb", "a\\textbackslash nb")]
     public void VisibleControlChars_RendersControlsAsGlyphs(string input, string expected)
     {
         Assert.Equal(expected, LatexHelper.VisibleControlChars(input));
+    }
+
+    // Control bytes with no named escape (everything except \n, \r, \t) fall through to the ASCII
+    // mnemonic path — including NUL. Supplied as code points and built at runtime so this source file
+    // contains no raw control bytes.
+    [Theory]
+    // NUL (no longer the \0 named escape)
+    [InlineData(new[] { 0x00 }, "\\textbackslash NUL")]
+    // BEL
+    [InlineData(new[] { 0x07 }, "\\textbackslash BEL")]
+    // DEL
+    [InlineData(new[] { 0x7F }, "\\textbackslash DEL")]
+    // STX between printable characters
+    [InlineData(new[] { (int)'a', 0x02, (int)'b' }, "a\\textbackslash STXb")]
+    public void VisibleControlChars_RendersUnnamedControlsAsMnemonics(int[] codePoints, string expected)
+    {
+        Assert.Equal(expected, LatexHelper.VisibleControlChars(BuildFromCodePoints(codePoints)));
     }
 
     [Fact]
@@ -90,6 +124,23 @@ public class LatexHelperTests
     public void UnescapeExact_BackslashBecomesTextbackslash()
     {
         Assert.Equal("\\textbackslash path", LatexHelper.UnescapeExact("\\path"));
+    }
+
+    // Control bytes without a friendly \n/\r/\t escape render as their ASCII mnemonic in exact mode
+    // too — including NUL. Built from code points at runtime so no raw control byte lands in this
+    // source file.
+    [Theory]
+    // STX
+    [InlineData(new[] { 0x02 }, "\\textbackslash STX")]
+    // DEL
+    [InlineData(new[] { 0x7F }, "\\textbackslash DEL")]
+    // NUL renders as its mnemonic, not the old \0 escape
+    [InlineData(new[] { 0x00 }, "\\textbackslash NUL")]
+    // NUL then DEL: two mnemonics
+    [InlineData(new[] { 0x00, 0x7F }, "\\textbackslash NUL\\textbackslash DEL")]
+    public void UnescapeExact_RendersControlBytesAsGlyphs(int[] codePoints, string expected)
+    {
+        Assert.Equal(expected, LatexHelper.UnescapeExact(BuildFromCodePoints(codePoints)));
     }
 
     // ---- CountExactRows ----
@@ -375,6 +426,16 @@ public class LatexHelperTests
     public void CountExactRowsForMessage(int messageLength, int rowWidth, bool hasCodeByte, float expected)
     {
         Assert.Equal(expected, LatexHelper.CountExactRowsForMessage(messageLength, rowWidth, hasCodeByte));
+    }
+
+    // Materializes a string from raw code points at runtime. Lets tests exercise non-printable
+    // control bytes (NUL, STX, BEL, DEL, ...) without ever writing those bytes into this source file.
+    private static string BuildFromCodePoints(int[] codePoints)
+    {
+        var chars = new char[codePoints.Length];
+        for (int i = 0; i < codePoints.Length; i++)
+            chars[i] = (char)codePoints[i];
+        return new string(chars);
     }
 
     private static int CountOccurrences(string haystack, string needle)
