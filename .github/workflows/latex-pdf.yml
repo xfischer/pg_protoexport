@@ -1,11 +1,6 @@
 name: Build LaTeX PDFs
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'docs/examples/exports/**/*.tex'
-      - '.github/workflows/latex-pdf.yml'
   pull_request:
     branches: [ "main" ]
     paths:
@@ -19,9 +14,10 @@ jobs:
   latex-pdf:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Set reproducible timestamp
@@ -33,8 +29,7 @@ jobs:
           root_file: 'docs/examples/exports/**/capture.tex'
           work_in_root_file_dir: true
 
-      - name: Commit generated PDFs
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Commit generated PDFs to the PR branch
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -43,5 +38,5 @@ jobs:
             echo "No PDF changes to commit."
           else
             git commit -m "Build example LaTeX captures to PDF [skip ci]"
-            git push
+            git push origin HEAD:"${{ github.head_ref }}"
           fi
