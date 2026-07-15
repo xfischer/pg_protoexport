@@ -6,11 +6,12 @@
 {
   "Parse": {
     "Code": "P (1 byte)",
-    "Length": "56 (4 bytes)",
+    "Length": "105 (4 bytes)",
     "Stmt": "\"_p1\" (4 bytes)",
-    "Query": "\"SELECT title FROM film WHERE film_id = $1\" (42 bytes)",
-    "Params": "1 (2 bytes)",
+    "Query": "\"SELECT film_id, title, length FROM film WHERE r...\" (87 bytes)",
+    "Params": "2 (2 bytes)",
     "OIDs": [
+      "25 (4 bytes)",
       "23 (4 bytes)"
     ]
   }
@@ -61,7 +62,7 @@
 {
   "ParameterDescription": {
     "Code": "t (1 byte)",
-    "Length": "10 (4 bytes)"
+    "Length": "14 (4 bytes)"
   }
 }
 @endjson
@@ -72,9 +73,18 @@
 {
   "RowDescription": {
     "Code": "T (1 byte)",
-    "Length": "30 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "81 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "FieldDescriptions": [
+      {
+        "Name": "\"film_id\" (8 bytes)",
+        "TableOid": "1469070 (4 bytes)",
+        "ColIdx": "1 (2 bytes)",
+        "TypeOid": "23 (4 bytes)",
+        "ColLen": "4 (2 bytes)",
+        "TypeMod": "-1 (4 bytes)",
+        "Format": "Text (2 bytes)"
+      },
       {
         "Name": "\"title\" (6 bytes)",
         "TableOid": "1469070 (4 bytes)",
@@ -82,6 +92,15 @@
         "TypeOid": "1043 (4 bytes)",
         "ColLen": "-1 (2 bytes)",
         "TypeMod": "259 (4 bytes)",
+        "Format": "Text (2 bytes)"
+      },
+      {
+        "Name": "\"length\" (7 bytes)",
+        "TableOid": "1469070 (4 bytes)",
+        "ColIdx": "9 (2 bytes)",
+        "TypeOid": "21 (4 bytes)",
+        "ColLen": "2 (2 bytes)",
+        "TypeMod": "-1 (4 bytes)",
         "Format": "Text (2 bytes)"
       }
     ]
@@ -110,15 +129,20 @@
 {
   "Bind": {
     "Code": "B (1 byte)",
-    "Length": "27 (4 bytes)",
+    "Length": "34 (4 bytes)",
     "Portal": "\"\" (1 byte)",
     "Statement": "\"_p1\" (4 bytes)",
-    "FmtCount": "1 (2 bytes)",
+    "FmtCount": "2 (2 bytes)",
     "ParameterFormats": [
+      "Text (2 bytes)",
       "Binary (2 bytes)"
     ],
-    "ValCount": "1 (2 bytes)",
+    "ValCount": "2 (2 bytes)",
     "ParameterValues": [
+      {
+        "Len": "1 (4 bytes)",
+        "Data": "(1 bytes)"
+      },
       {
         "Len": "4 (4 bytes)",
         "Data": "(4 bytes)"
@@ -158,7 +182,7 @@
 ```
 
 
-# Packet 4 (4 messages, FrontEnd <-- BackEnd)
+# Packet 4 (24 messages, FrontEnd <-- BackEnd)
 
 ```plantuml
 @startjson
@@ -174,14 +198,22 @@
 ```plantuml
 @startjson
 {
-  "DataRow": {
+  "DataRow (x21)": {
     "Code": "D (1 byte)",
-    "Length": "26 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "38 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "Columns": [
       {
-        "Len": "16 (4 bytes)",
-        "Value": "title: \"ACADEMY DINOSAUR\" (16 bytes)"
+        "Len": "4 (4 bytes)",
+        "Value": "film_id: \"\u0000\u0000\u0000\u0002\" (4 bytes)"
+      },
+      {
+        "Len": "14 (4 bytes)",
+        "Value": "title: \"ACE GOLDFINGER\" (14 bytes)"
+      },
+      {
+        "Len": "2 (4 bytes)",
+        "Value": "length: \"\u00000\" (2 bytes)"
       }
     ]
   }
@@ -194,8 +226,8 @@
 {
   "CommandComplete": {
     "Code": "C (1 byte)",
-    "Length": "13 (4 bytes)",
-    "Tag": "\"SELECT 1\" (9 bytes)"
+    "Length": "14 (4 bytes)",
+    "Tag": "\"SELECT 21\" (10 bytes)"
   }
 }
 @endjson
@@ -221,15 +253,20 @@
 {
   "Bind": {
     "Code": "B (1 byte)",
-    "Length": "27 (4 bytes)",
+    "Length": "35 (4 bytes)",
     "Portal": "\"\" (1 byte)",
     "Statement": "\"_p1\" (4 bytes)",
-    "FmtCount": "1 (2 bytes)",
+    "FmtCount": "2 (2 bytes)",
     "ParameterFormats": [
+      "Text (2 bytes)",
       "Binary (2 bytes)"
     ],
-    "ValCount": "1 (2 bytes)",
+    "ValCount": "2 (2 bytes)",
     "ParameterValues": [
+      {
+        "Len": "2 (4 bytes)",
+        "Data": "(2 bytes)"
+      },
       {
         "Len": "4 (4 bytes)",
         "Data": "(4 bytes)"
@@ -269,7 +306,7 @@
 ```
 
 
-# Packet 6 (4 messages, FrontEnd <-- BackEnd)
+# Packet 6 (65 messages, FrontEnd <-- BackEnd)
 
 ```plantuml
 @startjson
@@ -285,14 +322,22 @@
 ```plantuml
 @startjson
 {
-  "DataRow": {
+  "DataRow (x62)": {
     "Code": "D (1 byte)",
-    "Length": "25 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "40 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "Columns": [
       {
-        "Len": "15 (4 bytes)",
-        "Value": "title: \"AIRPLANE SIERRA\" (15 bytes)"
+        "Len": "4 (4 bytes)",
+        "Value": "film_id: \"\u0000\u0000\u0000\u0001\" (4 bytes)"
+      },
+      {
+        "Len": "16 (4 bytes)",
+        "Value": "title: \"ACADEMY DINOSAUR\" (16 bytes)"
+      },
+      {
+        "Len": "2 (4 bytes)",
+        "Value": "length: \"\u0000V\" (2 bytes)"
       }
     ]
   }
@@ -305,8 +350,8 @@
 {
   "CommandComplete": {
     "Code": "C (1 byte)",
-    "Length": "13 (4 bytes)",
-    "Tag": "\"SELECT 1\" (9 bytes)"
+    "Length": "14 (4 bytes)",
+    "Tag": "\"SELECT 62\" (10 bytes)"
   }
 }
 @endjson
@@ -332,15 +377,20 @@
 {
   "Bind": {
     "Code": "B (1 byte)",
-    "Length": "27 (4 bytes)",
+    "Length": "34 (4 bytes)",
     "Portal": "\"\" (1 byte)",
     "Statement": "\"_p1\" (4 bytes)",
-    "FmtCount": "1 (2 bytes)",
+    "FmtCount": "2 (2 bytes)",
     "ParameterFormats": [
+      "Text (2 bytes)",
       "Binary (2 bytes)"
     ],
-    "ValCount": "1 (2 bytes)",
+    "ValCount": "2 (2 bytes)",
     "ParameterValues": [
+      {
+        "Len": "1 (4 bytes)",
+        "Data": "(1 bytes)"
+      },
       {
         "Len": "4 (4 bytes)",
         "Data": "(4 bytes)"
@@ -380,7 +430,7 @@
 ```
 
 
-# Packet 8 (4 messages, FrontEnd <-- BackEnd)
+# Packet 8 (106 messages, FrontEnd <-- BackEnd)
 
 ```plantuml
 @startjson
@@ -396,14 +446,22 @@
 ```plantuml
 @startjson
 {
-  "DataRow": {
+  "DataRow (x103)": {
     "Code": "D (1 byte)",
-    "Length": "21 (4 bytes)",
-    "Fields": "1 (2 bytes)",
+    "Length": "39 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "Columns": [
       {
-        "Len": "11 (4 bytes)",
-        "Value": "title: \"ALI FOREVER\" (11 bytes)"
+        "Len": "4 (4 bytes)",
+        "Value": "film_id: \"\u0000\u0000\u0000\b\" (4 bytes)"
+      },
+      {
+        "Len": "15 (4 bytes)",
+        "Value": "title: \"AIRPORT POLLOCK\" (15 bytes)"
+      },
+      {
+        "Len": "2 (4 bytes)",
+        "Value": "length: \"\u00006\" (2 bytes)"
       }
     ]
   }
@@ -416,8 +474,8 @@
 {
   "CommandComplete": {
     "Code": "C (1 byte)",
-    "Length": "13 (4 bytes)",
-    "Tag": "\"SELECT 1\" (9 bytes)"
+    "Length": "15 (4 bytes)",
+    "Tag": "\"SELECT 103\" (11 bytes)"
   }
 }
 @endjson

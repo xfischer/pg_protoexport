@@ -1,9 +1,11 @@
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (::1:57479)
+    participant C as Client (::1:65235)
     participant S@{ "type" : "database" } as Server (::1:5434)
     C->>S: Parse / Bind / Describe / Execute / Sync
-    S->>C: ParseComplete / BindComplete / RowDescription / DataRow / CommandComplete
+    S->>C: ParseComplete / BindComplete / RowDescription
+    S->>C: DataRow (x62)
+    S->>C: CommandComplete
     S->>C: ReadyForQuery
 ```

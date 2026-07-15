@@ -77,7 +77,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCRequest": {
+  "SSLRequest": {
     "Code": "? (1 byte)",
     "Length": "8 (4 bytes)"
   }
@@ -91,7 +91,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCResponse": {
+  "SSLResponse": {
     "Code": "? (1 byte)",
     "Length": "1 (4 bytes)"
   }
@@ -190,7 +190,7 @@
       },
       {
         "Type": "L (1 byte)",
-        "Message": "\"3465\" (5 bytes)"
+        "Message": "\"3466\" (5 bytes)"
       },
       {
         "Type": "R (1 byte)",

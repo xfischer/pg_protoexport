@@ -4,7 +4,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCRequest": {
+  "SSLRequest": {
     "Code": "? (1 byte)",
     "Length": "8 (4 bytes)"
   }
@@ -18,7 +18,7 @@
 ```plantuml
 @startjson
 {
-  "GSSENCResponse": {
+  "SSLResponse": {
     "Code": "? (1 byte)",
     "Length": "1 (4 bytes)"
   }
@@ -144,8 +144,8 @@
   "BackendKeyData": {
     "Code": "K (1 byte)",
     "Length": "12 (4 bytes)",
-    "PID": "49040 (4 bytes)",
-    "Key": "1731653302 (4 bytes)"
+    "PID": "167296 (4 bytes)",
+    "Key": "2836406931 (4 bytes)"
   }
 }
 @endjson
@@ -172,7 +172,7 @@
       },
       {
         "Type": "M (1 byte)",
-        "Message": "\"Welcome to Pagila, the time is 2026-05-21 09:41...\" (61 bytes)"
+        "Message": "\"Welcome to Pagila, the time is 2026-07-15 10:29...\" (61 bytes)"
       },
       {
         "Type": "W (1 byte)",
@@ -262,7 +262,7 @@
     "Columns": [
       {
         "Len": "71 (4 bytes)",
-        "Value": "version: \"PostgreSQL 18.3 on x86_64-windows, co...\" (71 bytes)"
+        "Value": "version: \"PostgreSQL 18.4 on x86_64-windows, co...\" (71 bytes)"
       }
     ]
   }

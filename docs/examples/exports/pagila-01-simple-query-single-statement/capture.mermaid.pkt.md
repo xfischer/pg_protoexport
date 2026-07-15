@@ -1,105 +1,21 @@
 
-# Packet 1 (5 messages, FrontEnd --> BackEnd)
+# Packet 1 (1 messages, FrontEnd --> BackEnd)
 
 ```mermaid
 ---
-title: "Parse"
+title: "Query"
 config:
   packet:
     bitsPerRow: 32
 ---
 packet
-    +1: "P"
-    +4: "Length: 34"
-    +1: "Stmt: "
-    +27: "Query: SELECT count(*) FROM actor"
-    +2: "Params: 0"
-```
-
-```mermaid
----
-title: "Bind"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "B"
-    +4: "Length: 14"
-    +1: "Portal: "
-    +1: "Statement: "
-    +2: "Fmt count: 0"
-    +2: "Val count: 0"
-    +2: "Res fmt count: 1"
-    +2: "Binary"
-```
-
-```mermaid
----
-title: "Describe"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "D"
-    +4: "Length: 6"
-    +1: "P"
-    +1: "Portal: "
-```
-
-```mermaid
----
-title: "Execute"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "E"
-    +4: "Length: 9"
-    +1: "Portal: "
-    +4: "MaxRows: 0"
-```
-
-```mermaid
----
-title: "Sync"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "S"
-    +4: "Length: 4"
+    +1: "Q"
+    +4: "Length: 33"
+    +29: "Query: SELECT * FROM actor LIMIT 1;"
 ```
 
 
-# Packet 2 (6 messages, FrontEnd <-- BackEnd)
-
-```mermaid
----
-title: "ParseComplete"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "1"
-    +4: "Length: 4"
-```
-
-```mermaid
----
-title: "BindComplete"
-config:
-  packet:
-    bitsPerRow: 32
----
-packet
-    +1: "2"
-    +4: "Length: 4"
-```
+# Packet 2 (4 messages, FrontEnd <-- BackEnd)
 
 ```mermaid
 ---
@@ -110,15 +26,36 @@ config:
 ---
 packet
     +1: "T"
-    +4: "Length: 30"
-    +2: "Fields: 1"
-    +6: "Name: count"
-    +4: "TableOid: 0"
-    +2: "ColIdx: 0"
-    +4: "TypeOid: 20"
+    +4: "Length: 120"
+    +2: "Fields: 4"
+    +9: "Name: actor_id"
+    +4: "TableOid: 1469051"
+    +2: "ColIdx: 1"
+    +4: "TypeOid: 23"
+    +2: "ColLen: 4"
+    +4: "TypeMod: -1"
+    +2: "Text"
+    +11: "Name: first_name"
+    +4: "TableOid: 1469051"
+    +2: "ColIdx: 2"
+    +4: "TypeOid: 1043"
+    +2: "ColLen: -1"
+    +4: "TypeMod: 49"
+    +2: "Text"
+    +10: "Name: last_name"
+    +4: "TableOid: 1469051"
+    +2: "ColIdx: 3"
+    +4: "TypeOid: 1043"
+    +2: "ColLen: -1"
+    +4: "TypeMod: 49"
+    +2: "Text"
+    +12: "Name: last_update"
+    +4: "TableOid: 1469051"
+    +2: "ColIdx: 4"
+    +4: "TypeOid: 1114"
     +2: "ColLen: 8"
     +4: "TypeMod: -1"
-    +2: "Binary"
+    +2: "Text"
 ```
 
 ```mermaid
@@ -130,10 +67,16 @@ config:
 ---
 packet
     +1: "D"
-    +4: "Length: 18"
-    +2: "Fields: 1"
+    +4: "Length: 54"
+    +2: "Fields: 4"
+    +4: "Len: 1"
+    +1: "actor_id: 2"
+    +4: "Len: 4"
+    +4: "first_name: NICK"
     +4: "Len: 8"
-    +8: "count: 00000000000000c8"
+    +8: "last_name: WAHLBERG"
+    +4: "Len: 19"
+    +19: "last_update: 2006-02-15 09:34:33"
 ```
 
 ```mermaid

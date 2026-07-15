@@ -63,7 +63,11 @@ dotnet run --project pg_protoexport -- capture <output.pcapng> --quiet         #
 dotnet run --project pg_protoexport -- capture --list-devices
 
 # Pagila sample: capture + run pagila workload in one command
-# Writes one .pcapng per scenario, including scenario 00 (startup handshake)
+# Writes one .pcapng per scenario, including scenario 00 (startup handshake).
+# SslMode defaults to Prefer, so scenario 00 begins with an SSLRequest probe that a
+# TLS-off server rejects ('N') and continues in plaintext — a reproducible probe path
+# (no Kerberos). Server MUST have TLS off or Prefer upgrades and the capture is encrypted.
+# The committed docs/examples/captures were made with PGPORT=5434 PGUSER=postgres PGDATABASE=pagila.
 dotnet run --project pg_protoexport.samples.pagila -- capture-and-generate pagila.pcapng
 ```
 

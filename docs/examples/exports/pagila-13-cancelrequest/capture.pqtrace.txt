@@ -1,19 +1,19 @@
 Packet (F)
-2026-05-21T07:41:45.8745900Z	F	26	Parse	statement=, query=SELECT pg_sleep(2), parameter oids=[]
-2026-05-21T07:41:45.8745900Z	F	14	Bind	: formats: [], values len: [], results format: [1]
-2026-05-21T07:41:45.8745900Z	F	6	Describe	Portal: ''
-2026-05-21T07:41:45.8745900Z	F	9	Execute	portal='', maxrows=0
-2026-05-21T07:41:45.8745900Z	F	4	Sync	SyncMessage
+2026-07-15T08:29:36.1238200Z	F	26	Parse	statement=, query=SELECT pg_sleep(2), parameter oids=[]
+2026-07-15T08:29:36.1238200Z	F	14	Bind	: formats: [], values len: [], results format: [1]
+2026-07-15T08:29:36.1238200Z	F	6	Describe	Portal: ''
+2026-07-15T08:29:36.1238200Z	F	9	Execute	portal='', maxrows=0
+2026-07-15T08:29:36.1238200Z	F	4	Sync	SyncMessage
 Packet (F)
-2026-05-21T07:41:46.1904140Z	F	8	GSSENCRequest	GSSENCRequestMessage
+2026-07-15T08:29:36.4410800Z	F	8	SSLRequest	SSLRequestMessage
 Packet (B)
-2026-05-21T07:41:46.4764320Z	B	1	GSSENCResponse	GSSENCResponseMessage
+2026-07-15T08:29:36.5610280Z	B	1	SSLResponse	SSLResponseMessage
 Packet (F)
-2026-05-21T07:41:46.4779690Z	F	16	CancelRequest	pid=49040, secret=6736EEB6
+2026-07-15T08:29:36.5613680Z	F	16	CancelRequest	pid=167296, secret=A9102293
 Packet (B)
-2026-05-21T07:41:46.4789340Z	B	4	ParseComplete	ParseCompleteMessage
-2026-05-21T07:41:46.4789340Z	B	4	BindComplete	
-2026-05-21T07:41:46.4789340Z	B	33	RowDescription	[pg_sleep: 0, 0, 2278, 4, -1, 1]
-2026-05-21T07:41:46.4789340Z	B	104	ErrorResponse	[S: ERROR, V: ERROR, C: 57014, M: canceling statement due to user request, F: postgres.c, L: 3465, R: ProcessInterrupts]
+2026-07-15T08:29:36.5670300Z	B	4	ParseComplete	ParseCompleteMessage
+2026-07-15T08:29:36.5670300Z	B	4	BindComplete	
+2026-07-15T08:29:36.5670300Z	B	33	RowDescription	[pg_sleep: 0, 0, 2278, 4, -1, 1]
+2026-07-15T08:29:36.5670300Z	B	104	ErrorResponse	[S: ERROR, V: ERROR, C: 57014, M: canceling statement due to user request, F: postgres.c, L: 3466, R: ProcessInterrupts]
 Packet (B)
-2026-05-21T07:41:46.4794030Z	B	5	ReadyForQuery	Idle
+2026-07-15T08:29:36.5684040Z	B	5	ReadyForQuery	Idle

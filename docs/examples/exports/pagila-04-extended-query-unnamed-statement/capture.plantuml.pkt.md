@@ -6,11 +6,12 @@
 {
   "Parse": {
     "Code": "P (1 byte)",
-    "Length": "67 (4 bytes)",
+    "Length": "102 (4 bytes)",
     "Stmt": "\"\" (1 byte)",
-    "Query": "\"SELECT title, release_year FROM film WHERE film...\" (56 bytes)",
-    "Params": "1 (2 bytes)",
+    "Query": "\"SELECT film_id, title, length FROM film WHERE r...\" (87 bytes)",
+    "Params": "2 (2 bytes)",
     "OIDs": [
+      "25 (4 bytes)",
       "23 (4 bytes)"
     ]
   }
@@ -23,15 +24,20 @@
 {
   "Bind": {
     "Code": "B (1 byte)",
-    "Length": "24 (4 bytes)",
+    "Length": "32 (4 bytes)",
     "Portal": "\"\" (1 byte)",
     "Statement": "\"\" (1 byte)",
-    "FmtCount": "1 (2 bytes)",
+    "FmtCount": "2 (2 bytes)",
     "ParameterFormats": [
+      "Text (2 bytes)",
       "Binary (2 bytes)"
     ],
-    "ValCount": "1 (2 bytes)",
+    "ValCount": "2 (2 bytes)",
     "ParameterValues": [
+      {
+        "Len": "2 (4 bytes)",
+        "Data": "(2 bytes)"
+      },
       {
         "Len": "4 (4 bytes)",
         "Data": "(4 bytes)"
@@ -84,7 +90,7 @@
 ```
 
 
-# Packet 2 (6 messages, FrontEnd <-- BackEnd)
+# Packet 2 (67 messages, FrontEnd <-- BackEnd)
 
 ```plantuml
 @startjson
@@ -113,9 +119,18 @@
 {
   "RowDescription": {
     "Code": "T (1 byte)",
-    "Length": "61 (4 bytes)",
-    "Fields": "2 (2 bytes)",
+    "Length": "81 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "FieldDescriptions": [
+      {
+        "Name": "\"film_id\" (8 bytes)",
+        "TableOid": "1469070 (4 bytes)",
+        "ColIdx": "1 (2 bytes)",
+        "TypeOid": "23 (4 bytes)",
+        "ColLen": "4 (2 bytes)",
+        "TypeMod": "-1 (4 bytes)",
+        "Format": "Binary (2 bytes)"
+      },
       {
         "Name": "\"title\" (6 bytes)",
         "TableOid": "1469070 (4 bytes)",
@@ -126,11 +141,11 @@
         "Format": "Binary (2 bytes)"
       },
       {
-        "Name": "\"release_year\" (13 bytes)",
+        "Name": "\"length\" (7 bytes)",
         "TableOid": "1469070 (4 bytes)",
-        "ColIdx": "4 (2 bytes)",
-        "TypeOid": "23 (4 bytes)",
-        "ColLen": "4 (2 bytes)",
+        "ColIdx": "9 (2 bytes)",
+        "TypeOid": "21 (4 bytes)",
+        "ColLen": "2 (2 bytes)",
         "TypeMod": "-1 (4 bytes)",
         "Format": "Binary (2 bytes)"
       }
@@ -143,18 +158,22 @@
 ```plantuml
 @startjson
 {
-  "DataRow": {
+  "DataRow (x62)": {
     "Code": "D (1 byte)",
-    "Length": "36 (4 bytes)",
-    "Fields": "2 (2 bytes)",
+    "Length": "40 (4 bytes)",
+    "Fields": "3 (2 bytes)",
     "Columns": [
       {
-        "Len": "18 (4 bytes)",
-        "Value": "title: \"41525449535420434f4c44424c4f4f444544\" (18 bytes)"
+        "Len": "4 (4 bytes)",
+        "Value": "film_id: \"00000001\" (4 bytes)"
       },
       {
-        "Len": "4 (4 bytes)",
-        "Value": "release_year: \"000007d6\" (4 bytes)"
+        "Len": "16 (4 bytes)",
+        "Value": "title: \"41434144454d592044494e4f53415552\" (16 bytes)"
+      },
+      {
+        "Len": "2 (4 bytes)",
+        "Value": "length: \"0056\" (2 bytes)"
       }
     ]
   }
@@ -167,8 +186,8 @@
 {
   "CommandComplete": {
     "Code": "C (1 byte)",
-    "Length": "13 (4 bytes)",
-    "Tag": "\"SELECT 1\" (9 bytes)"
+    "Length": "14 (4 bytes)",
+    "Tag": "\"SELECT 62\" (10 bytes)"
   }
 }
 @endjson

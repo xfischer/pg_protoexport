@@ -10,10 +10,11 @@ config:
 ---
 packet
     +1: "P"
-    +4: "Length: 67"
+    +4: "Length: 102"
     +1: "Stmt: "
-    +56: "Query: SELECT title, release_year FROM film WHERE film..."
-    +2: "Params: 1"
+    +87: "Query: SELECT film_id, title, length FROM film WHERE r..."
+    +2: "Params: 2"
+    +4: "OID: 25"
     +4: "OID: 23"
 ```
 
@@ -26,12 +27,15 @@ config:
 ---
 packet
     +1: "B"
-    +4: "Length: 24"
+    +4: "Length: 32"
     +1: "Portal: "
     +1: "Statement: "
-    +2: "Fmt count: 1"
+    +2: "Fmt count: 2"
+    +2: "Text"
     +2: "Binary"
-    +2: "Val count: 1"
+    +2: "Val count: 2"
+    +4: "Len: 2"
+    +2: "data"
     +4: "Len: 4"
     +4: "data"
     +2: "Res fmt count: 1"
@@ -79,7 +83,7 @@ packet
 ```
 
 
-# Packet 2 (6 messages, FrontEnd <-- BackEnd)
+# Packet 2 (67 messages, FrontEnd <-- BackEnd)
 
 ```mermaid
 ---
@@ -114,8 +118,15 @@ config:
 ---
 packet
     +1: "T"
-    +4: "Length: 61"
-    +2: "Fields: 2"
+    +4: "Length: 81"
+    +2: "Fields: 3"
+    +8: "Name: film_id"
+    +4: "TableOid: 1469070"
+    +2: "ColIdx: 1"
+    +4: "TypeOid: 23"
+    +2: "ColLen: 4"
+    +4: "TypeMod: -1"
+    +2: "Binary"
     +6: "Name: title"
     +4: "TableOid: 1469070"
     +2: "ColIdx: 2"
@@ -123,30 +134,32 @@ packet
     +2: "ColLen: -1"
     +4: "TypeMod: 259"
     +2: "Binary"
-    +13: "Name: release_year"
+    +7: "Name: length"
     +4: "TableOid: 1469070"
-    +2: "ColIdx: 4"
-    +4: "TypeOid: 23"
-    +2: "ColLen: 4"
+    +2: "ColIdx: 9"
+    +4: "TypeOid: 21"
+    +2: "ColLen: 2"
     +4: "TypeMod: -1"
     +2: "Binary"
 ```
 
 ```mermaid
 ---
-title: "DataRow"
+title: "DataRow (x62)"
 config:
   packet:
     bitsPerRow: 32
 ---
 packet
     +1: "D"
-    +4: "Length: 36"
-    +2: "Fields: 2"
-    +4: "Len: 18"
-    +18: "title: 41525449535420434f4c44424c4f4f444544"
+    +4: "Length: 40"
+    +2: "Fields: 3"
     +4: "Len: 4"
-    +4: "release_year: 000007d6"
+    +4: "film_id: 00000001"
+    +4: "Len: 16"
+    +16: "title: 41434144454d592044494e4f53415552"
+    +4: "Len: 2"
+    +2: "length: 0056"
 ```
 
 ```mermaid
@@ -158,8 +171,8 @@ config:
 ---
 packet
     +1: "C"
-    +4: "Length: 13"
-    +9: "Tag: SELECT 1"
+    +4: "Length: 14"
+    +10: "Tag: SELECT 62"
 ```
 
 ```mermaid

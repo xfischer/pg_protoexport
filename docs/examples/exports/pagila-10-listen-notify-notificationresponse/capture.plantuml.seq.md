@@ -1,7 +1,7 @@
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 C -> S : Parse / Bind / Describe / Execute / Sync
 S -> C : ParseComplete / BindComplete / NoData / CommandComplete
@@ -11,10 +11,10 @@ S -> C : ReadyForQuery
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
-C -> S : GSSENCRequest
-S -> C : GSSENCResponse
+C -> S : SSLRequest
+S -> C : SSLResponse
 C -> S : StartupMessage
 S -> C : AuthenticationRequest
 C -> S : Password
@@ -29,7 +29,7 @@ S -> C : ReadyForQuery
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 C -> S : Parse / Bind / Describe / Execute / Sync
 S -> C : ParseComplete / BindComplete / NoData / CommandComplete
@@ -39,7 +39,7 @@ S -> C : ReadyForQuery
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 S -> C : Unknown
 C -> S : Terminate
@@ -48,7 +48,7 @@ C -> S : Terminate
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 C -> S : Parse / Bind / Describe / Execute / Sync
 S -> C : ParseComplete / BindComplete / RowDescription / DataRow / CommandComplete
@@ -58,7 +58,7 @@ S -> C : ReadyForQuery
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 C -> S : Parse / Bind / Describe / Execute / Sync
 S -> C : ParseComplete / BindComplete / NoData / CommandComplete

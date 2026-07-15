@@ -1,10 +1,10 @@
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
-C -> S : GSSENCRequest
-S -> C : GSSENCResponse
+C -> S : SSLRequest
+S -> C : SSLResponse
 C -> S : StartupMessage
 S -> C : AuthenticationRequest
 C -> S : Password
@@ -19,7 +19,7 @@ S -> C : ReadyForQuery
 
 ```plantuml
 @startuml
-participant "Client (::1:57479)" as C
+participant "Client (::1:65235)" as C
 participant "Server (::1:5434)" as S
 C -> S : Query
 S -> C : RowDescription / DataRow / CommandComplete / RowDescription
