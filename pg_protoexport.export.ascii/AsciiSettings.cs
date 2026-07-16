@@ -21,6 +21,10 @@ public class AsciiBranchSettings : ExportSettings
     [CommandOption("-c|--console")]
     public bool Console { get; init; }
 
+    [Description("Show a timeline annotation for every packet: an absolute timestamp on the first packet, then the elapsed time since the previous packet and since capture start.")]
+    [CommandOption("--timeline")]
+    public bool Timeline { get; init; }
+
     public override ValidationResult Validate()
     {
         var baseValidation = base.Validate();

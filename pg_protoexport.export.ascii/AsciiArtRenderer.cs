@@ -67,19 +67,38 @@ internal static class AsciiArtRenderer
     /// diagrams. Lines are split with <see cref="BuildAsciiSequenceLines"/> to keep batched flows
     /// readable rather than collapsing a whole packet into one giant arrow.
     /// </summary>
-    public static void RenderSequenceDiagram(TextWriter w, IEnumerable<PostgresPacket> packets, int maxLineWidth)
+    public static void RenderSequenceDiagram(TextWriter w, IEnumerable<PostgresPacket> packets, int maxLineWidth, bool showTimeline = false)
     {
         if (maxLineWidth < 40) maxLineWidth = 40;
         if (maxLineWidth > 400) maxLineWidth = 400;
 
         // First pass: resolve endpoints and collect every (direction, label, closes) line so we can
-        // size the channel to the widest label before drawing anything.
+        // size the channel to the widest label before drawing anything. timelines[i] carries the
+        // timeline annotation (if any) to draw immediately above lines[i] — only the first line
+        // derived from a given packet gets one, since PostgresPacket.Timestamp is per-packet.
         SessionEndpoints? endpoints = null;
         var lines = new List<(bool FrontEnd, string Label, bool ClosesDiagram)>();
+        var timelines = new List<string?>();
+        var timelineTracker = new PacketTimelineTracker();
         foreach (var packet in packets)
         {
             endpoints ??= SessionEndpoints.FromFirstPacket(packet);
-            lines.AddRange(BuildAsciiSequenceLines(packet));
+            var packetLines = BuildAsciiSequenceLines(packet);
+            for (int i = 0; i < packetLines.Count; i++)
+            {
+                if (i == 0 && showTimeline)
+                {
+                    var (isFirst, absolute, delta, total) = timelineTracker.Advance(packet.Timestamp);
+                    timelines.Add(isFirst
+                        ? $"{absolute} (capture start)"
+                        : $"Δ {PacketTimeline.FormatDelta(delta!.Value)} (total {PacketTimeline.FormatDelta(total!.Value)})");
+                }
+                else
+                {
+                    timelines.Add(null);
+                }
+            }
+            lines.AddRange(packetLines);
         }
 
         if (endpoints is null || lines.Count == 0)
@@ -105,6 +124,8 @@ internal static class AsciiArtRenderer
         for (int i = 0; i < lines.Count; i++)
         {
             var (frontEnd, label, closes) = lines[i];
+            if (timelines[i] is string timeline)
+                WriteTimelineLine(w, timeline, channel);
             WriteArrowLine(w, label, frontEnd, channel);
             if (closes)
             {
@@ -233,6 +254,17 @@ internal static class AsciiArtRenderer
         var sb = new StringBuilder(channel + 2);
         sb.Append('|');
         sb.Append(' ', channel);
+        sb.Append('|');
+        w.WriteLine(sb.ToString());
+    }
+
+    /// <summary>Draws a "time since last packet" annotation centered in the channel, between the
+    /// two lifeline walls, immediately above the arrow it applies to.</summary>
+    private static void WriteTimelineLine(TextWriter w, string text, int channel)
+    {
+        var sb = new StringBuilder(channel + 2);
+        sb.Append('|');
+        sb.Append(CenterFit(text, channel));
         sb.Append('|');
         w.WriteLine(sb.ToString());
     }

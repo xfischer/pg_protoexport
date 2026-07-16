@@ -12,7 +12,8 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
 
     public IExportResult Export(IEnumerable<PostgresPacket> packets, string outputPath, string? mode, IExportOptions? options)
     {
-        PcapToHtml(packets, outputPath);
+        var opts = options as HtmlExportOptions ?? HtmlExportOptions.Default;
+        PcapToHtml(packets, outputPath, opts.ShowTimeline);
         return new EmptyExportResult();
     }
 
@@ -28,7 +29,7 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
         return new PcapToHtmlService(loggerFactory.CreateLoggerOrNull<PcapToHtmlService>(), PcapToMermaidService.Create(loggerFactory));
     }
 
-    public void PcapToHtml(IEnumerable<PostgresPacket> packets, string outputFile)
+    public void PcapToHtml(IEnumerable<PostgresPacket> packets, string outputFile, bool showTimeline = false)
     {
         var materialized = packets.ToList();
 
@@ -43,13 +44,31 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
         // cards can link back to the originating session's first card.
         var firstCardIdxByClientPort = new Dictionary<ushort, int>();
         int idx = 0;
+        int? lastPacketIndex = null;
+        var timeline = new PacketTimelineTracker();
         foreach (var (packet, message, snapshot) in ProtocolStateProjector.Project(materialized))
         {
             ushort clientPort = packet.IsFrontEnd ? packet.SourcePort : packet.DestinationPort;
             if (!firstCardIdxByClientPort.ContainsKey(clientPort))
                 firstCardIdxByClientPort[clientPort] = idx;
 
-            var card = BuildCard(idx, packet, message, snapshot, rationales);
+            string? timelineAbsolute = null;
+            string? timelineDelta = null;
+            string? timelineTotal = null;
+            if (showTimeline && packet.PacketIndex != lastPacketIndex)
+            {
+                var (isFirst, absolute, delta, total) = timeline.Advance(packet.Timestamp);
+                if (isFirst)
+                    timelineAbsolute = $"{absolute} (capture start)";
+                else
+                {
+                    timelineDelta = PacketTimeline.FormatDelta(delta!.Value);
+                    timelineTotal = PacketTimeline.FormatDelta(total!.Value);
+                }
+                lastPacketIndex = packet.PacketIndex;
+            }
+
+            var card = BuildCard(idx, packet, message, snapshot, rationales, timelineAbsolute, timelineDelta, timelineTotal);
             if (message is CancelRequestMessage cancel
                 && cancel.CorrelatedClientPort is ushort targetPort
                 && firstCardIdxByClientPort.TryGetValue(targetPort, out var targetIdx))
@@ -92,7 +111,7 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
         logger.LogInformation("Wrote HTML report to {OutputFile} ({CardCount} cards, {InterludeCount} interludes)", outputFile, cards.Count, interludes.Count);
     }
 
-    private static HtmlMessageCard BuildCard(int idx, PostgresPacket packet, PostgresMessageBase message, ProtocolStateSnapshot snap, Dictionary<string, string> rationales)
+    private static HtmlMessageCard BuildCard(int idx, PostgresPacket packet, PostgresMessageBase message, ProtocolStateSnapshot snap, Dictionary<string, string> rationales, string? timelineAbsolute = null, string? timelineDelta = null, string? timelineTotal = null)
     {
         string direction = message.FrontEnd ? "C->S" : "S->C";
 
@@ -133,7 +152,10 @@ public class PcapToHtmlService(ILogger<PcapToHtmlService> logger, IPcapToMermaid
             Headline: BuildHeadline(message),
             Fields: fields,
             Rationale: rationale,
-            StateAfter: ToHtmlSnapshot(snap));
+            StateAfter: ToHtmlSnapshot(snap),
+            TimelineAbsolute: timelineAbsolute,
+            TimelineDelta: timelineDelta,
+            TimelineTotal: timelineTotal);
     }
 
     private static HtmlStateSnapshot ToHtmlSnapshot(ProtocolStateSnapshot s) => new(

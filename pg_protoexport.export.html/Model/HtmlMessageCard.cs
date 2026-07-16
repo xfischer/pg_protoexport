@@ -10,7 +10,10 @@ public sealed record HtmlMessageCard(
     string Headline,
     List<HtmlField> Fields,
     string? Rationale,
-    HtmlStateSnapshot StateAfter)
+    HtmlStateSnapshot StateAfter,
+    string? TimelineAbsolute = null,
+    string? TimelineDelta = null,
+    string? TimelineTotal = null)
 {
     /// <summary>
     /// If this card represents a CancelRequest whose (pid, secret) matches a BackendKeyData

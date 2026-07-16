@@ -27,6 +27,10 @@ public sealed class LatexSettings : SingleFileExportSettings
     [CommandOption("--row-bytes")]
     public int? RowWidthBytes { get; init; }
 
+    [Description("Show a timeline annotation on every packet header: an absolute timestamp on the first packet, then the elapsed time since the previous packet and since capture start.")]
+    [CommandOption("--timeline")]
+    public bool? Timeline { get; init; }
+
     protected override ValidationResult ValidateExtended()
     {
         if (RowWidthBytes is int rb && (rb < 8 || rb > 256))

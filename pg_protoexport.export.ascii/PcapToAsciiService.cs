@@ -39,9 +39,9 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
         void Render(TextWriter w)
         {
             if (mode == ModeSequenceDiagram)
-                AsciiArtRenderer.RenderSequenceDiagram(w, packets, maxLineWidth);
+                AsciiArtRenderer.RenderSequenceDiagram(w, packets, maxLineWidth, opts.ShowTimeline);
             else
-                WriteFieldBoxes(w, packets, maxLineWidth, maxDataRows);
+                WriteFieldBoxes(w, packets, maxLineWidth, maxDataRows, opts.ShowTimeline);
         }
 
         if (opts.ToConsole)
@@ -71,7 +71,7 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
     public void PcapToAscii(IEnumerable<PostgresPacket> packets, string outputFile, int maxLineWidth, int maxDataRows)
     {
         using var writer = new StreamWriter(outputFile, false);
-        WriteFieldBoxes(writer, packets, ClampMaxLineWidth(maxLineWidth), maxDataRows);
+        WriteFieldBoxes(writer, packets, ClampMaxLineWidth(maxLineWidth), maxDataRows, showTimeline: false);
     }
 
     public void PcapToSequenceDiagram(IEnumerable<PostgresPacket> packets, string outputFile)
@@ -83,7 +83,7 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
     public void PcapToSequenceDiagram(IEnumerable<PostgresPacket> packets, TextWriter writer)
         => AsciiArtRenderer.RenderSequenceDiagram(writer, packets, ClampMaxLineWidth(_options.DefaultMaxLineWidth));
 
-    private static void WriteFieldBoxes(TextWriter writer, IEnumerable<PostgresPacket> packets, int maxLineWidth, int maxDataRows)
+    private static void WriteFieldBoxes(TextWriter writer, IEnumerable<PostgresPacket> packets, int maxLineWidth, int maxDataRows, bool showTimeline)
     {
         maxLineWidth = ClampMaxLineWidth(maxLineWidth);
 
@@ -91,9 +91,18 @@ public class PcapToAsciiService(ILogger<PcapToAsciiService> logger, IOptions<Pca
         // the remainder into one marker. dataRowRun is the length of the current run; the number
         // actually skipped is (dataRowRun - maxDataRows) once the run ends.
         int dataRowRun = 0;
+        var timeline = new PacketTimelineTracker();
 
         foreach (var p in packets)
         {
+            if (showTimeline)
+            {
+                var (isFirst, absolute, delta, total) = timeline.Advance(p.Timestamp);
+                writer.WriteLine(isFirst
+                    ? $"{absolute} (capture start)"
+                    : $"Δ {PacketTimeline.FormatDelta(delta!.Value)} (total {PacketTimeline.FormatDelta(total!.Value)})");
+            }
+
             foreach (var m in p.Messages)
             {
                 if (m is DataRowMessage)
