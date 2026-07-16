@@ -12,7 +12,7 @@ public class AuthenticationSASLMessage(PostgresMessageDescriptor pgMessage, int 
         int index = 0;
         do
         {
-            using (reader.BeginField($"mechanism[{index}]")) mechanism = reader.ReadNullTerminatedString(length);
+            using (reader.BeginField($"mechanism{index}")) mechanism = reader.ReadNullTerminatedString(length);
             if (!string.IsNullOrEmpty(mechanism))
             {
                 packet.Mechanisms.Add(mechanism);

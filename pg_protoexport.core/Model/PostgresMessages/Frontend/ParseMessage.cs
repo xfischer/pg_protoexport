@@ -18,7 +18,7 @@ public class ParseMessage(PostgresMessageDescriptor pgMessage, int length) : Pos
 
         for (int i = 0; i < packet.ParameterCount; i++)
         {
-            using (reader.BeginField($"parameterOid[{i}]"))
+            using (reader.BeginField($"parameterOid{i}"))
                 packet.ParameterOids.Add(reader.ReadInt32());
         }
         return packet;

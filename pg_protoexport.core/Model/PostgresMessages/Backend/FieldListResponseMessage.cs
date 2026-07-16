@@ -12,20 +12,20 @@ public abstract class FieldListResponseMessage(PostgresMessageDescriptor pgMessa
         var fields = new List<(char, string)>();
         int index = 0;
         char fieldType;
-        using (reader.BeginField($"fieldType[{index}]")) fieldType = reader.ReadChar();
+        using (reader.BeginField($"fieldType{index}")) fieldType = reader.ReadChar();
         do
         {
             if (fieldType == 0)
             {
-                using (reader.BeginField($"fieldType[{index}]")) fieldType = reader.ReadChar();
+                using (reader.BeginField($"fieldType{index}")) fieldType = reader.ReadChar();
             }
             else
             {
                 string fieldMessage;
-                using (reader.BeginField($"fieldMessage[{index}]")) fieldMessage = reader.ReadNullTerminatedString(len);
+                using (reader.BeginField($"fieldMessage{index}")) fieldMessage = reader.ReadNullTerminatedString(len);
                 fields.Add((fieldType, fieldMessage));
                 index++;
-                using (reader.BeginField($"fieldType[{index}]")) fieldType = reader.ReadChar();
+                using (reader.BeginField($"fieldType{index}")) fieldType = reader.ReadChar();
             }
         }
         while (fieldType != 0);

@@ -28,7 +28,7 @@ public class BindMessage(PostgresMessageDescriptor pgMessage, int length) : Post
 
         for (int i = 0; i < message.ParameterFormatsCount; i++)
         {
-            using (reader.BeginField($"parameterFormat[{i}]"))
+            using (reader.BeginField($"parameterFormat{i}"))
                 message.ParameterFormats.Add(reader.ReadInt16());
         }
 
@@ -36,11 +36,11 @@ public class BindMessage(PostgresMessageDescriptor pgMessage, int length) : Post
         for (int i = 0; i < message.ParameterValuesCount; i++)
         {
             int paramLength;
-            using (reader.BeginField($"parameterLength[{i}]")) paramLength = reader.ReadInt32();
+            using (reader.BeginField($"parameterLength{i}")) paramLength = reader.ReadInt32();
             if (paramLength > 0)
             {
                 byte[] data;
-                using (reader.BeginField($"parameterValue[{i}]")) data = reader.ReadBytes(paramLength);
+                using (reader.BeginField($"parameterValue{i}")) data = reader.ReadBytes(paramLength);
                 message.ParameterValues.Add(new(paramLength, data));
             }
             else
@@ -52,7 +52,7 @@ public class BindMessage(PostgresMessageDescriptor pgMessage, int length) : Post
         using (reader.BeginField("resultsFormatCount")) message.ResultsFormatCount = reader.ReadInt16();
         for (int i = 0; i < message.ResultsFormatCount; i++)
         {
-            using (reader.BeginField($"resultsFormat[{i}]"))
+            using (reader.BeginField($"resultsFormat{i}"))
                 message.ResultsFormat.Add(reader.ReadInt16());
         }
         return message;
