@@ -29,7 +29,7 @@ public class DataRowMessage(PostgresMessageDescriptor pgMessage, int length) : P
         for (int i = 0; i < message.FieldCount; i++)
         {
             int colLength;
-            using (reader.BeginField($"columnLength[{i}]")) colLength = reader.ReadInt32();
+            using (reader.BeginField($"columnLength{i}")) colLength = reader.ReadInt32();
             // TODO: create converters, should be also useful for Bind and other messages with data
             bool isText = lastRowDescription?.FieldDescriptions[i].Format == 0
                             || lastRowDescription?.FieldDescriptions[i].TypeOid == 19
@@ -38,7 +38,7 @@ public class DataRowMessage(PostgresMessageDescriptor pgMessage, int length) : P
             string? text = null;
             if (colLength > 0)
             {
-                using var scope = reader.BeginField($"columnValue[{i}]");
+                using var scope = reader.BeginField($"columnValue{i}");
                 data = reader.ReadBytes(colLength);
                 text = isText ? Encoding.UTF8.GetString(data) : Convert.ToHexStringLower(data);
                 scope.SetValue(text);

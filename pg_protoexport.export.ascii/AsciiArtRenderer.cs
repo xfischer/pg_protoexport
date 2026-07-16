@@ -13,7 +13,7 @@ namespace pg_protoexport;
 /// same wire-position information is carried far more compactly.
 ///
 /// Repeated structures (RowDescription field descriptors, DataRow columns, …) are detected by
-/// the trailing <c>[index]</c> in each field name and rendered one element per row, indented
+/// the trailing numeric suffix in each field name and rendered one element per row, indented
 /// four spaces, so a message with many repeats reads as a stack of small boxes rather than one
 /// enormous wrapped grid.
 /// </summary>
@@ -322,11 +322,11 @@ internal static class AsciiArtRenderer
     }
 
     /// <summary>A run of fields rendered as one box row (or wrapped set of rows). Repeated
-    /// elements — fields whose name ends in <c>[index]</c> — are indented; header fields are not.</summary>
+    /// elements — fields whose name ends in a numeric suffix — are indented; header fields are not.</summary>
     private sealed record FieldGroup(bool Indented, List<ParsedField> Fields);
 
     /// <summary>
-    /// Split the flat field list into consecutive runs sharing the same trailing <c>[index]</c>
+    /// Split the flat field list into consecutive runs sharing the same trailing numeric suffix
     /// (header fields, with no index, form their own un-indexed runs). Each indexed run is one
     /// repeated element and is rendered on its own indented line; un-indexed runs render flush left.
     /// </summary>
@@ -347,13 +347,14 @@ internal static class AsciiArtRenderer
         return groups;
     }
 
-    /// <summary>Returns the integer in a trailing <c>[n]</c> suffix, or null if the name has none.</summary>
+    /// <summary>Returns the integer in a trailing numeric suffix, or null if the name has none.</summary>
     private static int? ExtractIndex(string name)
     {
-        if (name.Length < 3 || name[^1] != ']') return null;
-        int open = name.LastIndexOf('[');
-        if (open < 0 || open == name.Length - 2) return null;
-        return int.TryParse(name.AsSpan(open + 1, name.Length - open - 2), out int idx) ? idx : null;
+        int end = name.Length;
+        int start = end;
+        while (start > 0 && char.IsDigit(name[start - 1])) start--;
+        if (start == end) return null; // no trailing digits at all
+        return int.TryParse(name.AsSpan(start, end - start), out int idx) ? idx : null;
     }
 
     /// <summary>

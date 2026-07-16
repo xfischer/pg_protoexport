@@ -26,7 +26,7 @@ public class StartupMessageMessage(PostgresMessageDescriptor pgMessage, int leng
         while (bytesRead < length - 1)
         {
             string param;
-            using (reader.BeginField(paramName is null ? $"parameterName[{paramIndex}]" : $"parameterValue[{paramIndex}]"))
+            using (reader.BeginField(paramName is null ? $"parameterName{paramIndex}" : $"parameterValue{paramIndex}"))
                 param = reader.ReadNullTerminatedString(length);
             bytesRead += param.Length;
             bytesRead += 1; // null terminator

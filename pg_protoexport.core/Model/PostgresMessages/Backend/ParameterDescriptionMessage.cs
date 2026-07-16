@@ -20,7 +20,7 @@ public class ParameterDescriptionMessage(PostgresMessageDescriptor pgMessage, in
         for (int i = 0; i < message.ParameterCount; i++)
         {
             int oid;
-            using (reader.BeginField($"parameterOid[{i}]")) oid = reader.ReadInt32();
+            using (reader.BeginField($"parameterOid{i}")) oid = reader.ReadInt32();
             message.ParameterOids.Add(oid);
         }
 

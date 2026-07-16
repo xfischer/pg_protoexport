@@ -73,7 +73,7 @@ public class PcapToAsciiServiceTests : IDisposable
         Assert.Contains("code", content);
         Assert.Contains("statementName", content);
         Assert.Contains("parameterCount", content);
-        Assert.Contains("parameterOid[0]", content);
+        Assert.Contains("parameterOid0", content);
         Assert.Contains("query", content);
     }
 
@@ -254,16 +254,16 @@ public class PcapToAsciiServiceTests : IDisposable
     [Fact]
     public void Renderer_RepeatedElements_EachOnItsOwnIndentedRow()
     {
-        // Two repeated descriptors ([0] and [1]) plus un-indexed header fields.
+        // Two repeated descriptors (0 and 1) plus un-indexed header fields.
         var fields = new[]
         {
-            new ParsedField("code",          0, 1, "T"),
-            new ParsedField("length",        1, 4, "40"),
-            new ParsedField("fieldCount",    5, 2, "2"),
-            new ParsedField("columnName[0]", 7, 6, "id"),
-            new ParsedField("typeOid[0]",   13, 4, "23"),
-            new ParsedField("columnName[1]",17, 6, "name"),
-            new ParsedField("typeOid[1]",   23, 4, "1043"),
+            new ParsedField("code",         0, 1, "T"),
+            new ParsedField("length",       1, 4, "40"),
+            new ParsedField("fieldCount",   5, 2, "2"),
+            new ParsedField("columnName0",  7, 6, "id"),
+            new ParsedField("typeOid0",    13, 4, "23"),
+            new ParsedField("columnName1", 17, 6, "name"),
+            new ParsedField("typeOid1",    23, 4, "1043"),
         };
 
         var sw = new StringWriter();
@@ -273,8 +273,8 @@ public class PcapToAsciiServiceTests : IDisposable
         // Header fields render flush-left; each repeated element is indented four spaces and the
         // two descriptors land on separate rows (not merged into one wide grid).
         Assert.Contains(lines, l => l.Contains("| code |") && !l.StartsWith("    "));
-        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName[0]") && !l.Contains("columnName[1]"));
-        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName[1]") && !l.Contains("columnName[0]"));
+        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName0") && !l.Contains("columnName1"));
+        Assert.Contains(lines, l => l.StartsWith("    ") && l.Contains("columnName1") && !l.Contains("columnName0"));
     }
 
     private static List<PostgresPacket> BuildDataRowSequence(int dataRowCount)

@@ -26,7 +26,7 @@ public abstract class CopyResponseBase(PostgresMessageDescriptor pgMessage, int 
         for (int i = 0; i < n; i++)
         {
             short col;
-            using (reader.BeginField($"columnFormat[{i}]")) col = reader.ReadInt16();
+            using (reader.BeginField($"columnFormat{i}")) col = reader.ReadInt16();
             cols.Add(col);
         }
         return (len, fmt, cols);
