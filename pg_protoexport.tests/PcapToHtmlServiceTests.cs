@@ -44,7 +44,7 @@ public class PcapToHtmlServiceTests : IDisposable
         }
     }
 
-    private string RunHtml()
+    private string RunHtml(bool showTimeline = false)
     {
         var pcapOptions = new PcapPostgresOptions { RecordFieldMetadata = true };
         pcapOptions.AddDefaultPostgresMessages();
@@ -54,8 +54,41 @@ public class PcapToHtmlServiceTests : IDisposable
         var mermaidService = new PcapToMermaidService(NullLogger<PcapToMermaidService>.Instance);
         var htmlService = new PcapToHtmlService(NullLogger<PcapToHtmlService>.Instance, mermaidService);
         var outputFile = Path.Combine(_tempDir, "report.html");
-        htmlService.PcapToHtml(packets, outputFile);
+        htmlService.PcapToHtml(packets, outputFile, showTimeline);
         return outputFile;
+    }
+
+    [Fact]
+    public void HtmlExportOptions_WithTimeline_TogglesShowTimeline()
+    {
+        var opts = new HtmlExportOptions();
+
+        var updated = (HtmlExportOptions)((ITimelineExportOptions)opts).WithTimeline(true);
+
+        Assert.True(updated.ShowTimeline);
+    }
+
+    [Fact]
+    public void PcapToHtml_TimelineOff_ByDefault_OmitsTimelineFields()
+    {
+        var outputFile = RunHtml();
+        var content = File.ReadAllText(outputFile);
+
+        Assert.DoesNotContain("timelineAbsolute", content);
+        Assert.DoesNotContain("timelineDelta", content);
+        Assert.DoesNotContain("timelineTotal", content);
+    }
+
+    [Fact]
+    public void PcapToHtml_TimelineOn_EmbedsAbsoluteStart_AndDeltas()
+    {
+        var outputFile = RunHtml(showTimeline: true);
+        var content = File.ReadAllText(outputFile);
+
+        Assert.Contains("timelineAbsolute", content);
+        Assert.Contains("capture start", content);
+        Assert.Contains("timelineDelta", content);
+        Assert.Contains("timelineTotal", content);
     }
 
     [Fact]

@@ -210,9 +210,7 @@ config:
 packet
     +1: "Q"
     +4: "Length: 3751"
-    +3747: "Query: SELECT version();
-
-SELECT ns.nspname, t.oid, t..."
+    +3747: "Query: SELECT version();\\r\\n\\nSELECT ns.nspname, t.oid, t..."
 ```
 
 

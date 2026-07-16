@@ -78,6 +78,76 @@ public class PcapToAsciiServiceTests : IDisposable
     }
 
     [Fact]
+    public void AsciiExportOptions_WithTimeline_TogglesShowTimeline_PreservingOtherSettings()
+    {
+        var opts = new AsciiExportOptions(MaxLineWidth: 200, ToConsole: true);
+
+        var updated = (AsciiExportOptions)((ITimelineExportOptions)opts).WithTimeline(true);
+
+        Assert.True(updated.ShowTimeline);
+        Assert.Equal(200, updated.MaxLineWidth);
+        Assert.True(updated.ToConsole);
+    }
+
+    [Fact]
+    public void FieldsMode_TimelineOff_ByDefault_OmitsTimelineText()
+    {
+        var packets = ParseExtendedQuery();
+        IPcapExporter service = PcapToAsciiService.Create() as IPcapExporter ?? throw new InvalidOperationException();
+        var outputFile = Path.Combine(_tempDir, "out.txt");
+
+        service.Export(packets, outputFile, PcapToAsciiService.ModeFields, new AsciiExportOptions());
+        var content = File.ReadAllText(outputFile);
+
+        Assert.DoesNotContain("capture start", content);
+        Assert.DoesNotContain("Δ", content);
+    }
+
+    [Fact]
+    public void FieldsMode_TimelineOn_ShowsAbsoluteStart_ThenDeltas()
+    {
+        var packets = ParseExtendedQuery();
+        IPcapExporter service = PcapToAsciiService.Create() as IPcapExporter ?? throw new InvalidOperationException();
+        var outputFile = Path.Combine(_tempDir, "out.txt");
+
+        service.Export(packets, outputFile, PcapToAsciiService.ModeFields, new AsciiExportOptions(ShowTimeline: true));
+        var content = File.ReadAllText(outputFile);
+
+        Assert.Contains("(capture start)", content);
+        Assert.Contains("Δ +", content);
+        Assert.Contains("(total +", content);
+    }
+
+    [Fact]
+    public void SequenceDiagram_TimelineOn_ShowsAbsoluteStart_ThenDeltas()
+    {
+        var packets = ParseExtendedQuery();
+        IPcapExporter service = PcapToAsciiService.Create() as IPcapExporter ?? throw new InvalidOperationException();
+        var outputFile = Path.Combine(_tempDir, "out.txt");
+
+        service.Export(packets, outputFile, PcapToAsciiService.ModeSequenceDiagram, new AsciiExportOptions(ShowTimeline: true));
+        var content = File.ReadAllText(outputFile);
+
+        Assert.Contains("(capture start)", content);
+        Assert.Contains("Δ +", content);
+        Assert.Contains("(total +", content);
+    }
+
+    [Fact]
+    public void SequenceDiagram_TimelineOff_ByDefault_OmitsTimelineText()
+    {
+        var packets = ParseExtendedQuery();
+        IPcapExporter service = PcapToAsciiService.Create() as IPcapExporter ?? throw new InvalidOperationException();
+        var outputFile = Path.Combine(_tempDir, "out.txt");
+
+        service.Export(packets, outputFile, PcapToAsciiService.ModeSequenceDiagram, new AsciiExportOptions());
+        var content = File.ReadAllText(outputFile);
+
+        Assert.DoesNotContain("capture start", content);
+        Assert.DoesNotContain("Δ", content);
+    }
+
+    [Fact]
     public void Output_FieldLengths_AreConveyedByRuler_NotPerFieldAnnotation()
     {
         var packets = ParseExtendedQuery();

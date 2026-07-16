@@ -9,6 +9,10 @@ if (this.State.Multiple)
 #>
 	\textbf{<#= this.Direction #>}
 	\\
+<#
+	if (!string.IsNullOrEmpty(this.TimelineAnnotation)) { #>
+	\mbox{\textbf{<#= this.TimelineAnnotation #>}}\hfil\\
+<#	} #>
 	\bitheader{0,1,4,5,<#= this.State.Render.RowWidthBytes - 1 #>} \\
 <#
 }
@@ -18,17 +22,21 @@ else
 	\\
 	\textbf{PacketIndex:<#= this.PacketIndex #>} <#= this.MessagesCount #> \textbf{<#= this.Direction #>}
 	\\
+<#
+	if (!string.IsNullOrEmpty(this.TimelineAnnotation)) { #>
+	\mbox{\textbf{<#= this.TimelineAnnotation #>}}\hfil\\
+<#	} #>
 	\bitheader{0,1,4,5,<#= this.State.Render.RowWidthBytes - 1 #>} \\
-	<# 
-	} 
-	else 
+	<#
+	}
+	else
 	{ #>
 	\vspace{1cm}
 
 	\begin{bytefield}[boxformatting={\centering\small}, bitheight=8ex]{<#= this.State.Render.RowWidthBytes #>}
-	<# 
+	<#
 		if (this.PacketIndex == 0)  // Page break
-		{	
+		{
 	#>
 	-page-break-\\
 	<#
@@ -37,7 +45,10 @@ else
 	\textbf{PacketIndex:<#= this.PacketIndex #>} <#= this.MessagesCount #> \textbf{<#= this.Direction #>}\\
 	<#
 		}
+		if (!string.IsNullOrEmpty(this.TimelineAnnotation)) {
 	#>
+	\mbox{\textbf{<#= this.TimelineAnnotation #>}}\hfil\\
+	<#	} #>
 	\bitheader{0,1,4,5,<#= this.State.Render.RowWidthBytes - 1 #>} \\
 	<#
 	}

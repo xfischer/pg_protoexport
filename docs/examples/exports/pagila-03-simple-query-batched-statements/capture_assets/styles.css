@@ -148,6 +148,7 @@ body.bytes-only #overview { display: none; }
 .card-head .idx { color: var(--muted); font-family: var(--font-mono); font-size: 0.85rem; }
 .card-head .direction { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
 .card-head .name { font-weight: 600; font-size: 1.05rem; }
+.card-head .timeline { color: var(--muted); font-family: var(--font-mono); font-size: 0.8rem; margin-left: auto; }
 
 .headline { font-size: 1rem; color: var(--fg); margin: 0.25rem 0 0.5rem; }
 .rationale { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.75rem; font-style: italic; }

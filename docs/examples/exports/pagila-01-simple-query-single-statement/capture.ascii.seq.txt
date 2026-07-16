@@ -1,7 +1,9 @@
 Client (::1:51885)                 Server (::1:5434)
 |                                                  |
+|         16:36:55.580514 (capture start)          |
 |--------------------- Query --------------------->|
 |                                                  |
+|           Δ +3094 µs (total +3094 µs)            |
 |<-- RowDescription / DataRow / CommandComplete ---|
 |                                                  |
 |<---------------- ReadyForQuery ------------------|

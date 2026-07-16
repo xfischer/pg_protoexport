@@ -1,9 +1,12 @@
 Client (::1:65235)                             Server (::1:5434)
 |                                                              |
+|               08:29:33.010461 (capture start)                |
 |---------- Parse / Bind / Describe / Execute / Sync --------->|
 |                                                              |
+|                 Δ +3202 µs (total +3202 µs)                  |
 |<-- ParseComplete / BindComplete / NoData / NoticeResponse ---|
 |                                                              |
+|                  Δ +147 µs (total +3349 µs)                  |
 |<--------------------- CommandComplete -----------------------|
 |                                                              |
 |<---------------------- ReadyForQuery ------------------------|

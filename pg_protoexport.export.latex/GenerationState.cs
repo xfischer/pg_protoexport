@@ -53,4 +53,10 @@ public class GenerationState(bool standalone, bool multiple = false)
     /// Tracks the number of packets processed
     /// </summary>
     public int StatsPacketsProcessed { get; internal set; } = 0;
+
+    /// <summary>
+    /// Turns each packet's <see cref="PostgresPacket.Timestamp"/> into a timeline annotation when
+    /// <see cref="LatexRenderOptions.ShowTimeline"/> is enabled. One tracker per export call.
+    /// </summary>
+    public PacketTimelineTracker Timeline { get; } = new();
 }
