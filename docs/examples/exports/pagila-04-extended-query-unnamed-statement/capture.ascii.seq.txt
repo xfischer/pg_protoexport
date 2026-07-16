@@ -1,7 +1,9 @@
 Client (::1:65235)                                                      Server (::1:5434)
 |                                                                                       |
+|                            08:29:30.789397 (capture start)                            |
 |---------------------- Parse / Bind / Describe / Execute / Sync ---------------------->|
 |                                                                                       |
+|                              Δ +3560 µs (total +3560 µs)                              |
 |<-- ParseComplete / BindComplete / RowDescription / DataRow (x62) / CommandComplete ---|
 |                                                                                       |
 |<----------------------------------- ReadyForQuery ------------------------------------|

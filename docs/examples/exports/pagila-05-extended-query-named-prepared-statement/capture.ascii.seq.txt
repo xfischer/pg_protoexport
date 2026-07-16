@@ -1,31 +1,39 @@
 Client (::1:65235)                            Server (::1:5434)
 |                                                             |
+|               08:29:31.350154 (capture start)               |
 |------------------ Parse / Describe / Sync ----------------->|
 |                                                             |
+|                 Δ +1695 µs (total +1695 µs)                 |
 |<-- ParseComplete / ParameterDescription / RowDescription ---|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
 |                                                             |
 
 |                                                             |
+|                 Δ +1522 µs (total +3217 µs)                 |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
+|                 Δ +467 µs (total +3684 µs)                  |
 |<----- BindComplete / DataRow (x21) / CommandComplete -------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
 |                                                             |
 
 |                                                             |
+|                 Δ +792 µs (total +4476 µs)                  |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
+|                 Δ +349 µs (total +4825 µs)                  |
 |<----- BindComplete / DataRow (x62) / CommandComplete -------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
 |                                                             |
 
 |                                                             |
+|                 Δ +611 µs (total +5436 µs)                  |
 |------------------- Bind / Execute / Sync ------------------>|
 |                                                             |
+|                 Δ +333 µs (total +5769 µs)                  |
 |<----- BindComplete / DataRow (x103) / CommandComplete ------|
 |                                                             |
 |<---------------------- ReadyForQuery -----------------------|
