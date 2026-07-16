@@ -10,7 +10,7 @@ public class ExportAsciiFieldsCommand(IExportApp app) : Command<AsciiSettings>
 
     internal static int RunAscii(IExportApp app, AsciiSettings settings, string mode)
     {
-        var opts = new AsciiExportOptions(MaxLineWidth: settings.MaxWidth, ToConsole: settings.Console);
+        var opts = new AsciiExportOptions(MaxLineWidth: settings.MaxWidth, ToConsole: settings.Console, ShowTimeline: settings.Timeline);
         var outputPath = settings.Console ? "" : settings.OutputPath!;
         app.RunExport("ascii", settings.InputFile, outputPath, settings.Port, mode: mode, options: opts);
         return 0;

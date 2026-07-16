@@ -24,7 +24,7 @@ public sealed class AsciiCliModule : IExporterCliModule
 
     public IEnumerable<BatchVariant> BatchVariants =>
     [
-        new("ascii", PcapToAsciiService.ModeFields,          null, "capture.ascii.txt"),
-        new("ascii", PcapToAsciiService.ModeSequenceDiagram, null, "capture.ascii.seq.txt"),
+        new("ascii", PcapToAsciiService.ModeFields,          AsciiExportOptions.Default, "capture.ascii.txt"),
+        new("ascii", PcapToAsciiService.ModeSequenceDiagram, AsciiExportOptions.Default, "capture.ascii.seq.txt"),
     ];
 }

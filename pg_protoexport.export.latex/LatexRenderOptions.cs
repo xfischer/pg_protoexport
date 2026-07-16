@@ -20,6 +20,12 @@ public sealed record LatexRenderOptions
     /// </summary>
     public int RowWidthBytes { get; init; } = 32;
 
+    /// <summary>
+    /// When true, every packet header shows an absolute timestamp (the first packet) or the
+    /// elapsed time since the previous packet (every later packet), via <see cref="PacketTimeline"/>.
+    /// </summary>
+    public bool ShowTimeline { get; init; } = false;
+
     /// <summary>Singleton default (nice mode, 32-byte rows) used when no options are supplied.</summary>
     public static LatexRenderOptions Default { get; } = new();
 }

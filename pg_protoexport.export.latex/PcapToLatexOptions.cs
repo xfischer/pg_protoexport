@@ -21,6 +21,12 @@ public sealed class PcapToLatexOptions
     /// </summary>
     public int DefaultRowWidthBytes { get; set; } = 32;
 
+    /// <summary>
+    /// Default value applied to <see cref="LatexRenderOptions.ShowTimeline"/> when a caller does not
+    /// supply explicit render options. CLI flags override this.
+    /// </summary>
+    public bool DefaultShowTimeline { get; set; } = false;
+
     internal Func<PostgresMessageBase, ITextTransformer?>? CustomTemplateProvider;
 
     internal Func<string?, GenerationState, ITextTransformer?>? CustomHeaderProvider;

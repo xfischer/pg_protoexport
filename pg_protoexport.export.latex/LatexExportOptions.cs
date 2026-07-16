@@ -8,9 +8,12 @@ namespace pg_protoexport;
 public sealed record LatexExportOptions(
     bool Standalone = true,
     bool MultipleFiles = false,
-    LatexRenderOptions? Render = null) : IExportOptions
+    LatexRenderOptions? Render = null) : IExportOptions, ITimelineExportOptions
 {
     public static readonly LatexExportOptions Default = new();
+
+    public IExportOptions WithTimeline(bool showTimeline) =>
+        this with { Render = (Render ?? LatexRenderOptions.Default) with { ShowTimeline = showTimeline } };
 }
 
 /// <summary>

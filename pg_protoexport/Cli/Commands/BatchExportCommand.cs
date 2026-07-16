@@ -89,9 +89,12 @@ public class BatchExportCommand(
             foreach (var v in _variants)
             {
                 var outPath = Path.Combine(subDir, v.OutputFileName);
+                var options = v.Options is ITimelineExportOptions timelineOptions
+                    ? timelineOptions.WithTimeline(settings.Timeline)
+                    : v.Options;
                 try
                 {
-                    app.RunExportPrebuilt(packets, v.Exporter, outPath, v.Mode, v.Options);
+                    app.RunExportPrebuilt(packets, v.Exporter, outPath, v.Mode, options);
                 }
                 catch (Exception ex)
                 {

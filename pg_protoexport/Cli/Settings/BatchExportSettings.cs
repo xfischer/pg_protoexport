@@ -23,6 +23,11 @@ public class BatchExportSettings : CommandSettings
     [DefaultValue(false)]
     public bool Recursive { get; init; }
 
+    [Description("Show a timeline annotation (absolute timestamp on the first packet, then elapsed time since the previous packet and since capture start) in every variant that supports it (LaTeX, ASCII, HTML).")]
+    [CommandOption("--timeline")]
+    [DefaultValue(false)]
+    public bool Timeline { get; init; }
+
     public override ValidationResult Validate()
     {
         if (string.IsNullOrWhiteSpace(InputDir))

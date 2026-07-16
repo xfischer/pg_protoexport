@@ -10,6 +10,7 @@ public class ExportLatexCommand(IExportApp app) : Command<LatexSettings>
         {
             Exact = settings.Exact ?? false,
             RowWidthBytes = settings.RowWidthBytes ?? 32,
+            ShowTimeline = settings.Timeline ?? false,
         };
 
         var opts = new LatexExportOptions(

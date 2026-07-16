@@ -41,24 +41,61 @@ if (this.State.Multiple)
             #line hidden
             
             #line 10 "PacketHeader.tt"
-            this.Write("}\r\n\t\\\\\r\n\t\\bitheader{0,1,4,5,");
+            this.Write("}\r\n\t\\\\\r\n");
             
             #line default
             #line hidden
             
             #line 12 "PacketHeader.tt"
+
+	if (!string.IsNullOrEmpty(this.TimelineAnnotation)) { 
+            
+            #line default
+            #line hidden
+            
+            #line 14 "PacketHeader.tt"
+            this.Write("\t\\mbox{\\textbf{");
+            
+            #line default
+            #line hidden
+            
+            #line 14 "PacketHeader.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( this.TimelineAnnotation ));
+            
+            #line default
+            #line hidden
+            
+            #line 14 "PacketHeader.tt"
+            this.Write("}}\\hfil\\\\\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 15 "PacketHeader.tt"
+	} 
+            
+            #line default
+            #line hidden
+            
+            #line 16 "PacketHeader.tt"
+            this.Write("\t\\bitheader{0,1,4,5,");
+            
+            #line default
+            #line hidden
+            
+            #line 16 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.State.Render.RowWidthBytes - 1 ));
             
             #line default
             #line hidden
             
-            #line 12 "PacketHeader.tt"
+            #line 16 "PacketHeader.tt"
             this.Write("} \\\\\r\n");
             
             #line default
             #line hidden
             
-            #line 13 "PacketHeader.tt"
+            #line 17 "PacketHeader.tt"
 
 }
 else
@@ -68,104 +105,141 @@ else
             #line default
             #line hidden
             
-            #line 18 "PacketHeader.tt"
+            #line 22 "PacketHeader.tt"
             this.Write("\t\\\\\r\n\t\\textbf{PacketIndex:");
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
+            #line 23 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.PacketIndex ));
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
+            #line 23 "PacketHeader.tt"
             this.Write("} ");
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
+            #line 23 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.MessagesCount ));
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
+            #line 23 "PacketHeader.tt"
             this.Write(" \\textbf{");
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
+            #line 23 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.Direction ));
             
             #line default
             #line hidden
             
-            #line 19 "PacketHeader.tt"
-            this.Write("}\r\n\t\\\\\r\n\t\\bitheader{0,1,4,5,");
+            #line 23 "PacketHeader.tt"
+            this.Write("}\r\n\t\\\\\r\n");
             
             #line default
             #line hidden
             
-            #line 21 "PacketHeader.tt"
+            #line 25 "PacketHeader.tt"
+
+	if (!string.IsNullOrEmpty(this.TimelineAnnotation)) { 
+            
+            #line default
+            #line hidden
+            
+            #line 27 "PacketHeader.tt"
+            this.Write("\t\\mbox{\\textbf{");
+            
+            #line default
+            #line hidden
+            
+            #line 27 "PacketHeader.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( this.TimelineAnnotation ));
+            
+            #line default
+            #line hidden
+            
+            #line 27 "PacketHeader.tt"
+            this.Write("}}\\hfil\\\\\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 28 "PacketHeader.tt"
+	} 
+            
+            #line default
+            #line hidden
+            
+            #line 29 "PacketHeader.tt"
+            this.Write("\t\\bitheader{0,1,4,5,");
+            
+            #line default
+            #line hidden
+            
+            #line 29 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.State.Render.RowWidthBytes - 1 ));
             
             #line default
             #line hidden
             
-            #line 21 "PacketHeader.tt"
+            #line 29 "PacketHeader.tt"
             this.Write("} \\\\\r\n\t");
             
             #line default
             #line hidden
             
-            #line 22 "PacketHeader.tt"
- 
-	} 
-	else 
+            #line 30 "PacketHeader.tt"
+
+	}
+	else
 	{ 
             
             #line default
             #line hidden
             
-            #line 26 "PacketHeader.tt"
+            #line 34 "PacketHeader.tt"
             this.Write("\t\\vspace{1cm}\r\n\r\n\t\\begin{bytefield}[boxformatting={\\centering\\small}, bitheight=8" +
                     "ex]{");
             
             #line default
             #line hidden
             
-            #line 28 "PacketHeader.tt"
+            #line 36 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.State.Render.RowWidthBytes ));
             
             #line default
             #line hidden
             
-            #line 28 "PacketHeader.tt"
+            #line 36 "PacketHeader.tt"
             this.Write("}\r\n\t");
             
             #line default
             #line hidden
             
-            #line 29 "PacketHeader.tt"
- 
+            #line 37 "PacketHeader.tt"
+
 		if (this.PacketIndex == 0)  // Page break
-		{	
+		{
 	
             
             #line default
             #line hidden
             
-            #line 33 "PacketHeader.tt"
+            #line 41 "PacketHeader.tt"
             this.Write("\t-page-break-\\\\\r\n\t");
             
             #line default
             #line hidden
             
-            #line 34 "PacketHeader.tt"
+            #line 42 "PacketHeader.tt"
 
 		} else {
 	
@@ -173,75 +247,100 @@ else
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write("\t\\textbf{PacketIndex:");
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.PacketIndex ));
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write("} ");
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.MessagesCount ));
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write(" \\textbf{");
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.Direction ));
             
             #line default
             #line hidden
             
-            #line 37 "PacketHeader.tt"
+            #line 45 "PacketHeader.tt"
             this.Write("}\\\\\r\n\t");
             
             #line default
             #line hidden
             
-            #line 38 "PacketHeader.tt"
+            #line 46 "PacketHeader.tt"
 
 		}
+		if (!string.IsNullOrEmpty(this.TimelineAnnotation)) {
 	
             
             #line default
             #line hidden
             
-            #line 41 "PacketHeader.tt"
+            #line 50 "PacketHeader.tt"
+            this.Write("\t\\mbox{\\textbf{");
+            
+            #line default
+            #line hidden
+            
+            #line 50 "PacketHeader.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( this.TimelineAnnotation ));
+            
+            #line default
+            #line hidden
+            
+            #line 50 "PacketHeader.tt"
+            this.Write("}}\\hfil\\\\\r\n\t");
+            
+            #line default
+            #line hidden
+            
+            #line 51 "PacketHeader.tt"
+	} 
+            
+            #line default
+            #line hidden
+            
+            #line 52 "PacketHeader.tt"
             this.Write("\t\\bitheader{0,1,4,5,");
             
             #line default
             #line hidden
             
-            #line 41 "PacketHeader.tt"
+            #line 52 "PacketHeader.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.State.Render.RowWidthBytes - 1 ));
             
             #line default
             #line hidden
             
-            #line 41 "PacketHeader.tt"
+            #line 52 "PacketHeader.tt"
             this.Write("} \\\\\r\n\t");
             
             #line default
             #line hidden
             
-            #line 42 "PacketHeader.tt"
+            #line 53 "PacketHeader.tt"
 
 	}
 }

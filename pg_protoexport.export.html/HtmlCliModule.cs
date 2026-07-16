@@ -11,6 +11,6 @@ public sealed class HtmlCliModule : IExporterCliModule
 
     public IEnumerable<BatchVariant> BatchVariants =>
     [
-        new("html", null, null, "capture.html"),
+        new("html", null, HtmlExportOptions.Default, "capture.html"),
     ];
 }

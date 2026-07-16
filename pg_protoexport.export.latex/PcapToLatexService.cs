@@ -70,8 +70,10 @@ public sealed class PcapToLatexService(ILogger<PcapToLatexService> logger, IOpti
                     state.LatexRowCount += (newChapter ? 1 : 0);
                 }
 
+                string? timeline = ComputeTimelineAnnotation(packet, state);
+
                 // Packet Header
-                fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state).TransformText());
+                fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state, timeline).TransformText());
 
                 foreach (var pgMessage in packet.Messages)
                 {
@@ -130,11 +132,13 @@ public sealed class PcapToLatexService(ILogger<PcapToLatexService> logger, IOpti
 
         foreach (var packet in pgSqlPackets)
         {
+            string? timeline = ComputeTimelineAnnotation(packet, state);
+
             foreach (var pgMessage in packet.Messages)
             {
                 var fileLatexBuilder = new StringBuilder();
                 // Packet Header
-                fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state).TransformText());
+                fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state, timeline).TransformText());
 
                 bool success = ProcessPostgresMessage(pgMessage, state, fileLatexBuilder, (builder, stateObj) =>
                 {
@@ -155,7 +159,7 @@ public sealed class PcapToLatexService(ILogger<PcapToLatexService> logger, IOpti
                     fileLatexBuilder.Clear();
 
                     // Packet Header
-                    fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state).TransformText());
+                    fileLatexBuilder.AppendLine(new PacketHeader(packet.Messages, packet.IsFrontEnd, packetIndex, state, timeline).TransformText());
                 });
 
                 if (!success)
@@ -245,7 +249,22 @@ public sealed class PcapToLatexService(ILogger<PcapToLatexService> logger, IOpti
     {
         Exact = LatexOptions.DefaultExact,
         RowWidthBytes = LatexOptions.DefaultRowWidthBytes,
+        ShowTimeline = LatexOptions.DefaultShowTimeline,
     };
+
+    static string? ComputeTimelineAnnotation(PostgresPacket packet, GenerationState state)
+    {
+        if (!state.Render.ShowTimeline)
+            return null;
+
+        var (isFirst, absolute, delta, total) = state.Timeline.Advance(packet.Timestamp);
+
+        if (isFirst)
+            return $"{absolute} (capture start)";
+
+        return $"$\\Delta$ +{PacketTimeline.DeltaMicroseconds(delta!.Value)} $\\mu$s " +
+               $"(total +{PacketTimeline.DeltaMicroseconds(total!.Value)} $\\mu$s)";
+    }
 
     static ITextTransformer? FindTextTransformer(PostgresMessageBase message) => message switch
     {
