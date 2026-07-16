@@ -209,11 +209,20 @@
         + '&rarr; Jump to query session (card #' + card.correlatedCardIdx + ')</a></p>';
     }
 
+    var timelineHtml = '';
+    if (card.timelineAbsolute) {
+      timelineHtml = '<span class="timeline">' + esc(card.timelineAbsolute) + '</span>';
+    } else if (card.timelineDelta) {
+      var totalText = card.timelineTotal ? (' (total ' + esc(card.timelineTotal) + ')') : '';
+      timelineHtml = '<span class="timeline">Δ ' + esc(card.timelineDelta) + totalText + '</span>';
+    }
+
     return '<article class="card" id="card-' + card.idx + '" data-direction="' + esc(card.direction) + '" data-card-idx="' + card.idx + '" data-message-name="' + esc(card.name) + '">'
       + '<div class="card-head">'
       + '<span class="idx">#' + card.idx + '</span>'
       + '<span class="direction">' + esc(card.direction) + '</span>'
       + '<span class="name">' + esc(card.name) + '</span>'
+      + timelineHtml
       + '</div>'
       + '<p class="headline">' + esc(card.headline) + '</p>'
       + (card.rationale ? '<p class="rationale">' + esc(card.rationale) + '</p>' : '')

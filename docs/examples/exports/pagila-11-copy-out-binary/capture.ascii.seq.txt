@@ -1,7 +1,9 @@
 Client (::1:65235)                                   Server (::1:5434)
 |                                                                    |
+|                  08:29:35.001737 (capture start)                   |
 |------------------------------ Query ------------------------------>|
 |                                                                    |
+|                    Δ +3142 µs (total +3142 µs)                     |
 |<-- CopyOutResponse / CopyData (x6) / CopyDone / CommandComplete ---|
 |                                                                    |
 |<------------------------- ReadyForQuery ---------------------------|

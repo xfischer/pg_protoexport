@@ -1,13 +1,18 @@
 Client (::1:65235) Server (::1:5434)
 |                       |
+|08:29:35.565070 (captur|
 |-------- Query ------->|
 |                       |
+|Δ +879 µs (total +879 µ|
 |<-- CopyInResponse ----|
 |                       |
+|Δ +4372 µs (total +5251|
 |------ CopyData ------>|
 |                       |
+|Δ +487 µs (total +5738 |
 |------ CopyDone ------>|
 |                       |
+|Δ +1494 µs (total +7232|
 |<-- CommandComplete ---|
 |                       |
 |<--- ReadyForQuery ----|

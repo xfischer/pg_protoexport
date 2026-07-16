@@ -1,3 +1,4 @@
+08:29:28.867054 (capture start)
 [F->B] SSLRequest (8 bytes)
 0      0        4             8
 +------+--------+-------------+
@@ -5,6 +6,7 @@
 | "\0" |   8    |  80877103   |
 +------+--------+-------------+
 
+Δ +120170 µs (total +120170 µs)
 [B->F] SSLResponse (1 bytes)
 0      1
 +------+
@@ -12,6 +14,7 @@
 | 'N'  |
 +------+
 
+Δ +2816 µs (total +122986 µs)
 [F->B] StartupMessage (60 bytes)
 0      0        4             8
 +------+--------+-------------+
@@ -34,6 +37,7 @@
     |    "database"    |     "pagila"      |
     +------------------+-------------------+
 
+Δ +2009 µs (total +124995 µs)
 [B->F] AuthenticationRequest (24 bytes)
 0      1        5                    9
 +------+--------+--------------------+
@@ -51,6 +55,7 @@
     |              |
     +--------------+
 
+Δ +8229 µs (total +133224 µs)
 [F->B] Password (56 bytes)
 0      1        5                 19                      23                                                                    56
 +------+--------+-----------------+-----------------------+----------------------------------------------------------------------+
@@ -58,6 +63,7 @@
 | 'p'  |   55   | "SCRAM-SHA-256" |          33           | "792C2C6E3D2A2C723D66666F2F6E44595039575450524445536D6A72742B43697A" |
 +------+--------+-----------------+-----------------------+----------------------------------------------------------------------+
 
+Δ +180 µs (total +133404 µs)
 [B->F] AuthenticationRequest (93 bytes)
 0      1        5                    9
 +------+--------+--------------------+
@@ -70,6 +76,7 @@
 | "723D66666F2F6E44595039575450524445536D6A72742B43697A76724563656D3248552F4D37623048504766646149504F622C733D6E744864647148646B50536B706452636A56397A52673D3D2C693D34303936" |
 +----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+Δ +5157 µs (total +138561 µs)
 [F->B] Password (109 bytes)
 0      1        5
 +------+--------+
@@ -82,6 +89,7 @@
 | "633D655377732C723D66666F2F6E44595039575450524445536D6A72742B43697A76724563656D3248552F4D37623048504766646149504F622C703D46567A7664495A746A5751306E56376C415946746E6A4472544368622B4C415974336453717475466930343D" |
 +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+Δ +6832 µs (total +145393 µs)
 [B->F] AuthenticationRequest (55 bytes)
 0      1        5                    9                                                                                               55
 +------+--------+--------------------+------------------------------------------------------------------------------------------------+
@@ -260,6 +268,7 @@
     |     "\0"     |
     +--------------+
 
+Δ +234 µs (total +145627 µs)
 [B->F] ReadyForQuery (6 bytes)
 0      1        5            6
 +------+--------+------------+
@@ -267,6 +276,7 @@
 | 'Z'  |   5    |    'I'     |
 +------+--------+------------+
 
+Δ +20621 µs (total +166248 µs)
 [F->B] Query (3752 bytes)
 0      1        5
 +------+--------+
@@ -279,6 +289,7 @@
 | "SELECT version();\r\n\nSELECT ns.nspname, t.oid, t.typname, t.typtype, t.typnotnull, t.elemtypoid\nFROM (\n    -- Arrays have typtype=b - this subquery identifies them by their typreceive and converts their typtype to a\n    -- We first do this for the type (innerest-most subquery), and then for its element type\n    -- This also returns the array element, range subtype and domain base type as elemtypoid\n    SELECT\n        typ.oid, typ.typnamespace, typ.typname, typ.typtype, typ.typrelid, typ.typnotnull, typ.relkind,\n        elemtyp.oid AS elemtypoid, elemtyp.typname AS elemtypname, elemcls.relkind AS elemrelkind,\n        CASE WHEN elemproc.proname='array_recv' THEN 'a' ELSE elemtyp.typtype END AS elemtyptype\n        , typ.typcategory\n    FROM (\n        SELECT typ.oid, typnamespace, typname, typrelid, typnotnull, relkind, typelem AS elemoid,\n            CASE WHEN proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,\n            CASE\n                WHEN proc.proname='array_recv' THEN typ.typelem\n                WHEN typ.typtype='r' THEN rngsubtype\n                WHEN typ.typtype='m' THEN (SELECT rngtypid FROM pg_range WHERE rngmultitypid = typ.oid)\n                WHEN typ.typtype='d' THEN typ.typbasetype\n            END AS elemtypoid\n            , typ.typcategory\n        FROM pg_type AS typ\n        LEFT JOIN pg_class AS cls ON (cls.oid = typ.typrelid)\n        LEFT JOIN pg_proc AS proc ON proc.oid = typ.typreceive\n        LEFT JOIN pg_range ON (pg_range.rngtypid = typ.oid)\n    ) AS typ\n    LEFT JOIN pg_type AS elemtyp ON elemtyp.oid = elemtypoid\n    LEFT JOIN pg_class AS elemcls ON (elemcls.oid = elemtyp.typrelid)\n    LEFT JOIN pg_proc AS elemproc ON elemproc.oid = elemtyp.typreceive\n) AS t\nJOIN pg_namespace AS ns ON (ns.oid = typnamespace)\nWHERE\n    \n    (typtype IN ('b', 'r', 'm', 'e', 'd') OR -- Base, range, multirange, enum, domain\n    (typtype = 'c' AND relkind='c') OR -- User-defined free-standing composites (not table composites) by default\n    (typtype = 'p' AND typname IN ('record', 'void', 'unknown')) OR -- Some special supported pseudo-types\n    (typtype = 'a' AND (  -- Array of...\n        elemtyptype IN ('b', 'r', 'm', 'e', 'd') OR -- Array of base, range, multirange, enum, domain\n        (elemtyptype = 'p' AND elemtypname IN ('record', 'void')) OR -- Arrays of special supported pseudo-types\n        (elemtyptype = 'c' AND elemrelkind='c') -- Array of user-defined free-standing composites (not table composites) by default\n    )))\nORDER BY CASE\n       WHEN typtype IN ('b', 'e', 'p') THEN 0           -- First base types, enums, pseudo-types\n       WHEN typtype = 'c' THEN 1                        -- Composites after (fields loaded later in 2nd pass)\n       WHEN typtype = 'r' THEN 2                        -- Ranges after\n       WHEN typtype = 'm' THEN 3                        -- Multiranges after\n       WHEN typtype = 'd' AND elemtyptype <> 'a' THEN 4 -- Domains over non-arrays after\n       WHEN typtype = 'a' THEN 5                        -- Arrays after\n       WHEN typtype = 'd' AND elemtyptype = 'a' THEN 6  -- Domains over arrays last\nEND;\r\n\n-- Load field definitions for (free-standing) composite types\nSELECT typ.oid, att.attname, att.atttypid\nFROM pg_type AS typ\nJOIN pg_namespace AS ns ON (ns.oid = typ.typnamespace)\nJOIN pg_class AS cls ON (cls.oid = typ.typrelid)\nJOIN pg_attribute AS att ON (att.attrelid = typ.typrelid)\nWHERE\n  (typ.typtype = 'c' AND cls.relkind='c') AND\n  \n  attnum > 0 AND     -- Don't load system attributes\n  NOT attisdropped\nORDER BY typ.oid, att.attnum;\r\n\n-- Load enum fields\nSELECT typ.oid, enumlabel\nFROM pg_enum\nJOIN pg_type AS typ ON typ.oid = enumtypid\nJOIN pg_namespace AS ns ON ns.oid = typ.typnamespace\n\nORDER BY oid, enumsortorder;\r\n" |
 +----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
+Δ +37117 µs (total +203365 µs)
 [B->F] RowDescription (33 bytes)
 0      1        5            7
 +------+--------+------------+
@@ -384,6 +395,7 @@
     |       -1        |
     +-----------------+
 
+Δ +8525 µs (total +211890 µs)
 [B->F] ... 175 DataRow messages skipped ...
 
 [B->F] CommandComplete (16 bytes)
