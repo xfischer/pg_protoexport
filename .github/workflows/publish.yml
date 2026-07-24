@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5.4.0
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -167,7 +167,7 @@ jobs:
           fetch-depth: 0          # Nerdbank.GitVersioning needs full history
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5.4.0
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
