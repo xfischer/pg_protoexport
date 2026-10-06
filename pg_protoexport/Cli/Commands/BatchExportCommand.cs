@@ -15,7 +15,7 @@ public class BatchExportCommand(
     // needs to know which exporters exist.
     private readonly BatchVariant[] _variants = modules.SelectMany(m => m.BatchVariants).ToArray();
 
-    protected override int Execute(CommandContext context, BatchExportSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, BatchExportSettings settings, CancellationToken cancellation)
     {
         var inputDir  = settings.InputDir;
         var outputDir = settings.OutputDir!;

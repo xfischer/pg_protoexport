@@ -4,7 +4,7 @@ namespace pg_protoexport;
 
 public class ExportPqTraceCommand(IExportApp app) : Command<PqTraceSettings>
 {
-    protected override int Execute(CommandContext context, PqTraceSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, PqTraceSettings settings, CancellationToken cancellation)
     {
         app.RunExport("pqtrace", settings.InputFile, settings.OutputPath!, settings.Port);
 
