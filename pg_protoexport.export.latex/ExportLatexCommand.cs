@@ -4,7 +4,7 @@ namespace pg_protoexport;
 
 public class ExportLatexCommand(IExportApp app) : Command<LatexSettings>
 {
-    protected override int Execute(CommandContext context, LatexSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, LatexSettings settings, CancellationToken cancellation)
     {
         var render = new LatexRenderOptions
         {

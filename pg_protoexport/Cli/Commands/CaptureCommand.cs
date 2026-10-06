@@ -7,7 +7,7 @@ namespace pg_protoexport;
 public class CaptureCommand(ILiveCaptureSessionFactory factory, ILogger<CaptureCommand> logger)
     : AsyncCommand<CaptureSettings>
 {
-    protected override async Task<int> ExecuteAsync(
+    public override async Task<int> ExecuteAsync(
         CommandContext context, CaptureSettings settings, CancellationToken cancellation)
     {
         try

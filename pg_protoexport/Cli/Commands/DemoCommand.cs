@@ -13,7 +13,7 @@ public class DemoCommand(IAnsiConsole console, IExportApp app) : Command<DemoSet
 {
     private sealed record Lesson(string Heading, string Description, string Command, Action? Run);
 
-    protected override int Execute(CommandContext context, DemoSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, DemoSettings settings, CancellationToken cancellation)
     {
         string? sample = ResolveSample();
         bool interactive = !settings.NoRun

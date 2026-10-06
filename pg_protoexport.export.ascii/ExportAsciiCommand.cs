@@ -5,7 +5,7 @@ namespace pg_protoexport;
 /// <summary>Renders each message as a row of labelled, content-sized boxes (the default mode).</summary>
 public class ExportAsciiFieldsCommand(IExportApp app) : Command<AsciiSettings>
 {
-    protected override int Execute(CommandContext context, AsciiSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, AsciiSettings settings, CancellationToken cancellation)
         => RunAscii(app, settings, PcapToAsciiService.ModeFields);
 
     internal static int RunAscii(IExportApp app, AsciiSettings settings, string mode)
@@ -20,6 +20,6 @@ public class ExportAsciiFieldsCommand(IExportApp app) : Command<AsciiSettings>
 /// <summary>Renders the capture as a two-lifeline ASCII sequence diagram, one arrow per packet.</summary>
 public class ExportAsciiSequenceDiagramCommand(IExportApp app) : Command<AsciiSettings>
 {
-    protected override int Execute(CommandContext context, AsciiSettings settings, CancellationToken cancellation)
+    public override int Execute(CommandContext context, AsciiSettings settings, CancellationToken cancellation)
         => ExportAsciiFieldsCommand.RunAscii(app, settings, PcapToAsciiService.ModeSequenceDiagram);
 }
